@@ -30,11 +30,13 @@ dependencies = [
     "streamlit>=1.37.0",
     "requests>=2.31.0",
     "pandas>=2.2.0",
+    "fastmcp>=0.1.0",
 ]
 
 [project.scripts]
 langconnect-server = "langconnect.server:main"
 langconnect-client = "app:main"
+mcp-langconnect = "mcp.mcp_langconnect_server:main"
 
 [project.packages]
 find = { where = ["langconnect"] }

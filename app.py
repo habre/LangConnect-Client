@@ -80,6 +80,256 @@ def make_request(
         return False, f"Request failed: {str(e)}"
 
 
+def collections_tab():
+    st.header("Collections Management")
+    
+    # Create collection section
+    with st.expander("➕ Create New Collection", expanded=False):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            new_collection_name = st.text_input(
+                "Collection Name",
+                placeholder="Enter collection name",
+                key="new_collection_name"
+            )
+        
+        with col2:
+            new_collection_metadata = st.text_area(
+                "Metadata (JSON)",
+                value="{}",
+                height=100,
+                key="new_collection_metadata",
+                help="Enter metadata as a JSON object"
+            )
+        
+        if st.button("Create Collection", type="primary", key="create_collection_btn"):
+            if not new_collection_name:
+                st.error("Please enter a collection name")
+            else:
+                try:
+                    metadata = json.loads(new_collection_metadata) if new_collection_metadata else {}
+                    
+                    with st.spinner("Creating collection..."):
+                        success, result = make_request(
+                            "POST",
+                            "/collections",
+                            json_data={"name": new_collection_name, "metadata": metadata}
+                        )
+                    
+                    if success:
+                        st.success(f"Collection '{new_collection_name}' created successfully!")
+                        st.json(result)
+                        # Force refresh of collections list
+                        if 'collections_list' in st.session_state:
+                            del st.session_state['collections_list']
+                    else:
+                        st.error(f"Failed to create collection: {result}")
+                        
+                except json.JSONDecodeError:
+                    st.error("Invalid JSON in metadata")
+    
+    st.divider()
+    
+    # List collections section
+    st.subheader("📚 Existing Collections")
+    
+    # Refresh button
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if st.button("🔄 Refresh", key="refresh_collections"):
+            if 'collections_list' in st.session_state:
+                del st.session_state['collections_list']
+    
+    # Fetch collections
+    if 'collections_list' not in st.session_state:
+        with st.spinner("Loading collections..."):
+            success, collections = make_request("GET", "/collections")
+            
+            if success:
+                st.session_state['collections_list'] = collections
+            else:
+                st.error(f"Failed to fetch collections: {collections}")
+                return
+    
+    collections = st.session_state.get('collections_list', [])
+    
+    if not collections:
+        st.info("No collections found. Create one to get started!")
+    else:
+        # Display collections count
+        st.write(f"**Total Collections:** {len(collections)}")
+        
+        # Add column headers
+        header_col1, header_col2, header_col3, header_col4 = st.columns([3, 4, 4, 1])
+        with header_col1:
+            st.markdown("**Collection Name**")
+        with header_col2:
+            st.markdown("**UUID**")
+        with header_col3:
+            st.markdown("**Metadata**")
+        with header_col4:
+            st.markdown("**Action**")
+        
+        st.divider()
+        
+        # Prepare data for table display
+        display_data = []
+        for collection in collections:
+            collection_data = {
+                'Collection Name': collection['name'],
+                'UUID': collection['uuid'],
+                'Metadata': json.dumps(collection.get('metadata', {}), ensure_ascii=False) if collection.get('metadata') else '{}',
+                'collection_obj': collection  # Store the full object for actions
+            }
+            display_data.append(collection_data)
+        
+        # Display as dataframe
+        df = pd.DataFrame(display_data)
+        
+        # Show only display columns (not collection_obj)
+        display_columns = ['Collection Name', 'UUID', 'Metadata']
+        
+        # Create container for each row with delete button
+        for idx, row in df.iterrows():
+            col1, col2, col3, col4 = st.columns([3, 4, 4, 1])
+            
+            collection = row['collection_obj']
+            
+            with col1:
+                st.write(f"**{row['Collection Name']}**")
+            
+            with col2:
+                st.code(row['UUID'], language=None)
+            
+            with col3:
+                st.text(row['Metadata'])
+            
+            with col4:
+                if st.button("🗑️", key=f"delete_collection_{collection['uuid']}", help="Delete collection"):
+                    st.session_state[f'confirm_delete_{collection["uuid"]}'] = True
+            
+            # Confirmation dialog
+            if st.session_state.get(f'confirm_delete_{collection["uuid"]}', False):
+                st.warning(f"⚠️ Are you sure you want to delete '{collection['name']}'? This will also delete all documents in the collection.")
+                confirm_col1, confirm_col2 = st.columns(2)
+                
+                with confirm_col1:
+                    if st.button("Yes, Delete", key=f"confirm_yes_{collection['uuid']}", type="primary"):
+                        with st.spinner("Deleting collection..."):
+                            success, result = make_request(
+                                "DELETE",
+                                f"/collections/{collection['uuid']}"
+                            )
+                        
+                        if success:
+                            st.success(f"Collection '{collection['name']}' deleted successfully!")
+                            # Clear session state
+                            del st.session_state[f'confirm_delete_{collection["uuid"]}']
+                            if 'collections_list' in st.session_state:
+                                del st.session_state['collections_list']
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to delete collection: {result}")
+                
+                with confirm_col2:
+                    if st.button("Cancel", key=f"confirm_no_{collection['uuid']}"):
+                        del st.session_state[f'confirm_delete_{collection["uuid"]}']
+                        st.rerun()
+            
+            if idx < len(df) - 1:
+                st.divider()
+    
+    # Collection details section
+    if collections:
+        st.divider()
+        st.subheader("📊 Collection Details")
+        
+        collection_options = {f"{c['name']} ({c['uuid']}": c for c in collections}
+        selected = st.selectbox(
+            "Select a collection to view details",
+            list(collection_options.keys()),
+            key="collection_details_select"
+        )
+        
+        if selected:
+            selected_collection = collection_options[selected]
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**Collection Information:**")
+                st.write(f"- **Name:** {selected_collection['name']}")
+                st.write(f"- **UUID:** `{selected_collection['uuid']}`")
+            
+            with col2:
+                st.write("**Metadata:**")
+                metadata = selected_collection.get('metadata', {})
+                if metadata:
+                    st.json(metadata)
+                else:
+                    st.write("No metadata")
+            
+            # Quick stats
+            if st.button("📈 Get Collection Stats", key=f"stats_{selected_collection['uuid']}"):
+                with st.spinner("Fetching documents..."):
+                    success, documents = make_request(
+                        "GET",
+                        f"/collections/{selected_collection['uuid']}/documents?limit=100"
+                    )
+                
+                if success and documents:
+                    st.write("**Collection Statistics:**")
+                    
+                    # Chunk count
+                    total_chunks = len(documents)
+                    st.write(f"- Total chunks: {total_chunks}")
+                    if total_chunks == 100:
+                        st.caption("Note: Showing stats for first 100 chunks only")
+                    
+                    # Debug: Show first few chunks to understand structure
+                    with st.expander("Debug: First 3 chunks (click to expand)"):
+                        for i, doc in enumerate(documents[:3]):
+                            st.write(f"Chunk {i+1}:")
+                            st.json({
+                                "id": doc.get('id', 'N/A')[:8] + "...",
+                                "metadata": doc.get('metadata', {}),
+                                "content_preview": doc.get('page_content', '')[:100] + "..."
+                            })
+                    
+                    # Document analysis by file_id
+                    documents_by_file_id = {}
+                    for chunk in documents:
+                        metadata = chunk.get('metadata', {})
+                        file_id = metadata.get('file_id')
+                        if file_id:
+                            if file_id not in documents_by_file_id:
+                                documents_by_file_id[file_id] = {
+                                    'source': metadata.get('source', 'Unknown'),
+                                    'chunks': 0
+                                }
+                            documents_by_file_id[file_id]['chunks'] += 1
+                    
+                    # Show document count
+                    st.write(f"- Total documents: {len(documents_by_file_id)}")
+                    
+                    if documents_by_file_id:
+                        st.write("\n**Documents and their chunks:**")
+                        # Show documents with most chunks first
+                        sorted_docs = sorted(documents_by_file_id.items(), key=lambda x: x[1]['chunks'], reverse=True)
+                        for file_id, info in sorted_docs[:10]:  # Show top 10
+                            source_name = info['source']
+                            chunk_count = info['chunks']
+                            st.write(f"  - {source_name}: {chunk_count} chunks")
+                        
+                        if len(sorted_docs) > 10:
+                            st.caption(f"... and {len(sorted_docs) - 10} more documents")
+                elif success:
+                    st.info("No documents in this collection")
+                else:
+                    st.error(f"Failed to fetch documents: {documents}")
+
+
 def api_tester_tab():
     st.header("API Tester")
 
@@ -661,10 +911,10 @@ def main():
             "```"
         )
 
-    tab1, tab2, tab3, tab4 = st.tabs(["API Tester", "Document Upload", "Vector Search", "Document Management"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Collections", "Document Upload", "Vector Search", "Document Management", "API Tester"])
 
     with tab1:
-        api_tester_tab()
+        collections_tab()
 
     with tab2:
         document_upload_tab()
@@ -674,6 +924,9 @@ def main():
     
     with tab4:
         document_management_tab()
+    
+    with tab5:
+        api_tester_tab()
 
 
 if __name__ == "__main__":

@@ -1,12 +1,12 @@
 import os
 import json
 from typing import List, Dict, Any, Optional
-from pathlib import Path
 import asyncio
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 import httpx
+import datetime
 
 load_dotenv()
 
@@ -18,7 +18,34 @@ API_TOKEN = os.getenv("API_TOKEN", "user1")
 mcp = FastMCP(
     name="LangConnect",
     version="0.0.1",
-    description="LangConnect RAG Service - Vector search and document management via MCP",
+    description="""LangConnect RAG Service - A comprehensive document management and vector search system.
+
+Available Tools:
+1. search_documents - Perform semantic, keyword, or hybrid search on documents with metadata filtering
+2. list_collections - List all available document collections
+3. get_collection - Get detailed information about a specific collection
+4. create_collection - Create a new collection for storing documents
+5. update_collection - Update an existing collection's name or metadata
+6. delete_collection - Delete a collection and all its documents
+7. list_documents - List documents within a specific collection
+8. add_documents - Add text documents to a collection with metadata
+9. delete_document - Delete a specific document from a collection
+10. get_health_status - Check the health status of the LangConnect API
+
+This service provides:
+- Multiple search types: semantic (vector similarity), keyword (full-text), and hybrid (combined)
+- Metadata filtering for precise document retrieval (e.g., filter by source, type, date)
+- Collection management for organizing documents by topic or purpose
+- Document management for controlling stored content
+- RESTful API integration with authentication support
+
+Example usage:
+- Semantic search: Find conceptually similar documents
+- Keyword search: Find documents containing exact terms
+- Hybrid search: Combine both approaches for best results
+- Filter example: '{"source": "report.pdf"}' to search only in specific documents
+- Add documents: add_documents("collection-id", "Document text", '{"source": "article", "topic": "AI"}')
+""",
 )
 
 
@@ -41,19 +68,29 @@ class LangConnectClient:
         endpoint: str,
         json_data: Optional[Dict] = None,
         params: Optional[Dict] = None,
+        files: Optional[Dict] = None,
+        data: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """Make HTTP request to LangConnect API"""
         url = f"{self.base_url}{endpoint}"
 
         async with httpx.AsyncClient() as client:
             try:
+                # Adjust headers for file upload
+                headers = self.headers.copy()
+                if files:
+                    # Remove Content-Type for multipart/form-data
+                    headers.pop("Content-Type", None)
+
                 response = await client.request(
                     method=method,
                     url=url,
-                    headers=self.headers,
-                    json=json_data,
+                    headers=headers,
+                    json=json_data if not files else None,
                     params=params,
-                    timeout=30.0,
+                    files=files,
+                    data=data,
+                    timeout=60.0,  # Increased timeout for file uploads
                 )
                 response.raise_for_status()
 
@@ -80,9 +117,9 @@ client = LangConnectClient(API_BASE_URL, API_TOKEN)
 def format_search_results(results: List[Dict]) -> str:
     """Format search results as markdown"""
     if not results:
-        return "No results found."
+        return "No results found.\n\nTips:\n- Try different search types (semantic, keyword, hybrid)\n- Check your metadata filter syntax\n- Ensure the collection contains documents matching your criteria"
 
-    markdown = "## Search Results\n\n"
+    markdown = ""
 
     for i, result in enumerate(results, 1):
         score = result.get("score", 0)
@@ -131,28 +168,38 @@ def format_collections(collections: List[Dict]) -> str:
 
 @mcp.tool()
 async def search_documents(
-    collection_id: str, query: str, limit: int = 5, filter_json: Optional[str] = None
+    collection_id: str,
+    query: str,
+    limit: int = 5,
+    search_type: str = "semantic",
+    filter_json: Optional[str] = None,
 ) -> str:
     """
-    Perform vector similarity search on documents in a collection.
+    Perform search on documents in a collection.
 
     Args:
         collection_id: UUID of the collection to search in
         query: Search query text
         limit: Maximum number of results to return (default: 5)
-        filter_json: Optional JSON string containing metadata filters
+        search_type: Type of search - "semantic", "keyword", or "hybrid" (default: "semantic")
+        filter_json: Optional JSON string containing metadata filters (e.g., '{"source": "document.pdf"}')
 
     Returns:
         Formatted search results
     """
     try:
-        search_data = {"query": query, "limit": limit}
+        # Validate search type
+        valid_search_types = ["semantic", "keyword", "hybrid"]
+        if search_type not in valid_search_types:
+            return f"Error: Invalid search_type '{search_type}'. Must be one of: {', '.join(valid_search_types)}"
+
+        search_data = {"query": query, "limit": limit, "search_type": search_type}
 
         if filter_json:
             try:
                 search_data["filter"] = json.loads(filter_json)
             except json.JSONDecodeError:
-                return "Error: Invalid JSON in filter parameter"
+                return 'Error: Invalid JSON in filter parameter. Example: \'{"source": "document.pdf"}\''
 
         results = await client.request(
             "POST",
@@ -160,7 +207,12 @@ async def search_documents(
             json_data=search_data,
         )
 
-        return format_search_results(results)
+        # Add search type info to the output
+        header = f"## Search Results ({search_type.capitalize()} Search)\n\n"
+        if filter_json:
+            header += f"**Filter Applied:** `{filter_json}`\n\n"
+
+        return header + format_search_results(results)
     except Exception as e:
         return f"Search failed: {str(e)}"
 
@@ -352,6 +404,78 @@ async def delete_document(collection_id: str, document_id: str) -> str:
 
 
 @mcp.tool()
+async def add_documents(collection_id: str, text: str) -> str:
+    """
+    Add text documents to a collection.
+
+    Args:
+        collection_id: UUID of the collection to add documents to
+        text: Text content to add as a document
+
+    Returns:
+        Summary of added documents
+
+    Examples:
+        # More examples with proper formatting:
+        add_documents(
+            collection_id="uuid-here",
+            text="contents to be added..."
+        )
+    """
+    try:
+        # Parse metadata if provided
+        metadata = dict()
+        metadata["source"] = "text-input"
+        metadata["author"] = "MCP-Server"
+        metadata["timestamp"] = datetime.datetime.now().isoformat()
+        metadata["created_at"] = datetime.datetime.now().isoformat()
+
+        # Create file data for upload
+        filename = "document.txt"
+        content = text.encode("utf-8")
+        mimetype = "text/plain"
+
+        files_list = [("files", (filename, content, mimetype))]
+
+        # Prepare form data with metadata
+        form_data = {"metadatas_json": json.dumps([metadata])}
+
+        # Upload document
+        result = await client.request(
+            "POST",
+            f"/collections/{collection_id}/documents",
+            files=files_list,
+            data=form_data,
+        )
+
+        # Format response
+        success = result.get("success", False)
+        message = result.get("message", "Unknown response")
+
+        if success:
+            added_ids = result.get("added_chunk_ids", [])
+            markdown = f"## Document Added Successfully\n\n"
+            markdown += f"- **Message:** {message}\n"
+            markdown += f"- **Number of chunks created:** {len(added_ids)}\n"
+            markdown += f"- **Text length:** {len(text)} characters\n"
+
+            if metadata:
+                markdown += f"\n**Metadata:**\n"
+                for key, value in metadata.items():
+                    markdown += f"- {key}: {value}\n"
+
+            if result.get("warnings"):
+                markdown += f"\n**Warnings:** {result['warnings']}\n"
+
+            return markdown
+        else:
+            return f"Failed to add document: {message}"
+
+    except Exception as e:
+        return f"Failed to add document: {str(e)}"
+
+
+@mcp.tool()
 async def get_health_status() -> str:
     """
     Check the health status of the LangConnect API.
@@ -376,6 +500,7 @@ async def get_health_status() -> str:
 
 if __name__ == "__main__":
     import sys
+
     try:
         print("Starting LangConnect MCP server...", file=sys.stderr)
         print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
@@ -384,5 +509,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error starting MCP server: {e}", file=sys.stderr)
         import traceback
+
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)

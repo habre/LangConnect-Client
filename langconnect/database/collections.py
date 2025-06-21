@@ -12,7 +12,7 @@ import builtins
 import json
 import logging
 import uuid
-from typing import Any, NotRequired, Optional, TypedDict
+from typing import Any, Literal, NotRequired, Optional, TypedDict
 
 from fastapi import status
 from fastapi.exceptions import HTTPException
@@ -404,20 +404,206 @@ class Collection:
         }
 
     async def search(
-        self, query: str, *, limit: int = 4
+        self,
+        query: str,
+        *,
+        limit: int = 4,
+        search_type: Literal["semantic", "keyword", "hybrid"] = "semantic",
+        filter: Optional[dict[str, Any]] = None
     ) -> builtins.list[dict[str, Any]]:
-        """Run a semantic similarity search in the vector store.
-        Note: offset is applied client-side after retrieval.
+        """Run a search in the collection.
+        
+        Args:
+            query: The search query string
+            limit: Maximum number of results to return
+            search_type: Type of search - "semantic", "keyword", or "hybrid"
+            filter: Optional metadata filter to apply to results
+            
+        Returns:
+            List of search results with id, page_content, metadata, and score
         """
+        if search_type not in ["semantic", "keyword", "hybrid"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid search type: {search_type}. Must be 'semantic', 'keyword', or 'hybrid'."
+            )
+            
         details = await self._get_details_or_raise()
-        store = get_vectorstore(collection_name=details["table_id"])
-        results = store.similarity_search_with_score(query, k=limit)
-        return [
-            {
-                "id": doc.id,
-                "page_content": doc.page_content,
-                "metadata": doc.metadata,
-                "score": score,
-            }
-            for doc, score in results
-        ]
+        
+        # Helper function to apply metadata filter
+        def apply_metadata_filter(results: list[dict[str, Any]], filter_dict: dict[str, Any]) -> list[dict[str, Any]]:
+            """Apply metadata filter to search results."""
+            if not filter_dict:
+                return results
+                
+            filtered_results = []
+            for result in results:
+                result_metadata = result.get("metadata", {})
+                # Check if all filter conditions are met
+                match = True
+                for key, value in filter_dict.items():
+                    if key not in result_metadata or result_metadata[key] != value:
+                        match = False
+                        break
+                if match:
+                    filtered_results.append(result)
+            return filtered_results
+        
+        if search_type == "semantic":
+            # Current semantic search implementation
+            store = get_vectorstore(collection_name=details["table_id"])
+            # Get more results initially if filter is applied
+            k = limit * 3 if filter else limit
+            results = store.similarity_search_with_score(query, k=k)
+            
+            # Convert to standard format
+            formatted_results = [
+                {
+                    "id": doc.id,
+                    "page_content": doc.page_content,
+                    "metadata": doc.metadata,
+                    "score": score,
+                }
+                for doc, score in results
+            ]
+            
+            # Apply metadata filter
+            filtered_results = apply_metadata_filter(formatted_results, filter)
+            
+            # Return only the requested limit
+            return filtered_results[:limit]
+            
+        elif search_type == "keyword":
+            # Full-text search using PostgreSQL
+            # Get more results initially if filter is applied
+            search_limit = limit * 3 if filter else limit
+            
+            async with get_db_connection() as conn:
+                rows = await conn.fetch(
+                    """
+                    SELECT e.id as id,
+                           e.document as page_content,
+                           e.cmetadata as metadata,
+                           ts_rank(to_tsvector('english', e.document), 
+                                  plainto_tsquery('english', $1)) as score
+                    FROM langchain_pg_embedding e
+                    JOIN langchain_pg_collection c ON e.collection_id = c.uuid
+                    WHERE c.uuid = $2
+                      AND c.cmetadata->>'owner_id' = $3
+                      AND to_tsvector('english', e.document) @@ plainto_tsquery('english', $1)
+                    ORDER BY score DESC
+                    LIMIT $4
+                    """,
+                    query,
+                    self.collection_id,
+                    self.user_id,
+                    search_limit
+                )
+                
+            formatted_results = [
+                {
+                    "id": str(row["id"]),
+                    "page_content": row["page_content"],
+                    "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
+                    "score": float(row["score"]),
+                }
+                for row in rows
+            ]
+            
+            # Apply metadata filter
+            filtered_results = apply_metadata_filter(formatted_results, filter)
+            
+            # Return only the requested limit
+            return filtered_results[:limit]
+            
+        else:  # hybrid
+            # Get semantic search results
+            store = get_vectorstore(collection_name=details["table_id"])
+            semantic_results = store.similarity_search_with_score(query, k=limit * 2)
+            
+            # Get keyword search results
+            async with get_db_connection() as conn:
+                keyword_rows = await conn.fetch(
+                    """
+                    SELECT e.id as id,
+                           e.document as page_content,
+                           e.cmetadata as metadata,
+                           ts_rank(to_tsvector('english', e.document), 
+                                  plainto_tsquery('english', $1)) as score
+                    FROM langchain_pg_embedding e
+                    JOIN langchain_pg_collection c ON e.collection_id = c.uuid
+                    WHERE c.uuid = $2
+                      AND c.cmetadata->>'owner_id' = $3
+                      AND to_tsvector('english', e.document) @@ plainto_tsquery('english', $1)
+                    ORDER BY score DESC
+                    LIMIT $4
+                    """,
+                    query,
+                    self.collection_id,
+                    self.user_id,
+                    limit * 2
+                )
+            
+            # Combine and deduplicate results
+            combined_results = {}
+            
+            # Add semantic results with normalized scores
+            max_semantic_score = max((score for _, score in semantic_results), default=1.0)
+            for doc, score in semantic_results:
+                normalized_score = score / max_semantic_score if max_semantic_score > 0 else 0
+                combined_results[doc.id] = {
+                    "id": doc.id,
+                    "page_content": doc.page_content,
+                    "metadata": doc.metadata,
+                    "semantic_score": normalized_score,
+                    "keyword_score": 0,
+                    "combined_score": normalized_score * 0.7  # 70% weight for semantic
+                }
+            
+            # Add keyword results with normalized scores
+            if keyword_rows:
+                max_keyword_score = max((float(row["score"]) for row in keyword_rows), default=1.0)
+                for row in keyword_rows:
+                    doc_id = str(row["id"])
+                    normalized_score = float(row["score"]) / max_keyword_score if max_keyword_score > 0 else 0
+                    
+                    if doc_id in combined_results:
+                        # Document exists, update scores
+                        combined_results[doc_id]["keyword_score"] = normalized_score
+                        combined_results[doc_id]["combined_score"] = (
+                            combined_results[doc_id]["semantic_score"] * 0.7 +
+                            normalized_score * 0.3  # 30% weight for keyword
+                        )
+                    else:
+                        # New document from keyword search
+                        combined_results[doc_id] = {
+                            "id": doc_id,
+                            "page_content": row["page_content"],
+                            "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
+                            "semantic_score": 0,
+                            "keyword_score": normalized_score,
+                            "combined_score": normalized_score * 0.3
+                        }
+            
+            # Convert combined results to list format
+            all_results = [
+                {
+                    "id": result["id"],
+                    "page_content": result["page_content"],
+                    "metadata": result["metadata"],
+                    "score": result["combined_score"],
+                }
+                for result in combined_results.values()
+            ]
+            
+            # Apply metadata filter
+            filtered_results = apply_metadata_filter(all_results, filter)
+            
+            # Sort by combined score and return top results
+            sorted_results = sorted(
+                filtered_results,
+                key=lambda x: x["score"],
+                reverse=True
+            )[:limit]
+            
+            return sorted_results

@@ -169,10 +169,19 @@ def api_tester_tab():
             elif "search" in endpoint:
                 query = st.text_input("Search Query")
                 limit = st.number_input("Limit", min_value=1, max_value=100, value=10)
-                filter_json = st.text_area("Filter (JSON, optional)", "{}")
+                search_type = st.selectbox(
+                    "Search Type", 
+                    ["semantic", "keyword", "hybrid"],
+                    help="Semantic: Vector similarity search\nKeyword: Full-text search\nHybrid: Combination of both"
+                )
+                filter_json = st.text_area(
+                    "Filter (JSON, optional)", 
+                    placeholder='{"source": "SPRi AI Brief_6월호.pdf"}\n\n# Other examples:\n{"file_id": "abc123"}\n{"source": "document.pdf", "type": "report"}',
+                    help="Enter a JSON object to filter results by metadata"
+                )
                 try:
-                    filter_dict = json.loads(filter_json) if filter_json else None
-                    request_data = {"query": query, "limit": limit}
+                    filter_dict = json.loads(filter_json) if filter_json and filter_json != "{}" else None
+                    request_data = {"query": query, "limit": limit, "search_type": search_type}
                     if filter_dict:
                         request_data["filter"] = filter_dict
                 except json.JSONDecodeError:
@@ -249,12 +258,29 @@ def document_upload_tab():
         accept_multiple_files=True,
     )
 
-    metadata_input = st.text_area(
-        "Metadata for files (JSON array, one object per file)",
-        value='[{"source": "upload", "timestamp": "'
-        + datetime.now().isoformat()
-        + '"}]',
-    )
+    # Show uploaded files and auto-generate metadata
+    if uploaded_files:
+        st.write(f"**Selected {len(uploaded_files)} file(s):**")
+        default_metadata = []
+        for file in uploaded_files:
+            default_metadata.append({
+                "source": file.name,
+                "timestamp": datetime.now().isoformat()
+            })
+        
+        metadata_input = st.text_area(
+            "Metadata for files (JSON array, one object per file)",
+            value=json.dumps(default_metadata, indent=2),
+            height=200
+        )
+    else:
+        metadata_input = st.text_area(
+            "Metadata for files (JSON array, one object per file)",
+            value='[{"source": "filename.pdf", "timestamp": "'
+            + datetime.now().isoformat()
+            + '"}]',
+            height=100
+        )
 
     if st.button("Upload and Embed Documents", type="primary"):
         if not uploaded_files:
@@ -263,6 +289,18 @@ def document_upload_tab():
 
         try:
             metadata_list = json.loads(metadata_input) if metadata_input else []
+            
+            # Ensure metadata list matches number of files
+            if len(metadata_list) < len(uploaded_files):
+                # Add default metadata for missing files
+                for i in range(len(metadata_list), len(uploaded_files)):
+                    metadata_list.append({
+                        "source": uploaded_files[i].name,
+                        "timestamp": datetime.now().isoformat()
+                    })
+            elif len(metadata_list) > len(uploaded_files):
+                # Trim excess metadata
+                metadata_list = metadata_list[:len(uploaded_files)]
 
             files_data = []
             for i, file in enumerate(uploaded_files):
@@ -343,14 +381,53 @@ def vector_search_tab():
     )
     collection_id = collection_options[selected_collection]
 
+    # Show available sources for filtering
+    with st.expander("📋 View available sources in this collection"):
+        if st.button("Load sources", key="load_sources_for_filter"):
+            with st.spinner("Loading sources..."):
+                success, documents = make_request(
+                    "GET", f"/collections/{collection_id}/documents?limit=100"
+                )
+                if success and documents:
+                    # Extract unique sources
+                    sources = set()
+                    for doc in documents:
+                        source = doc.get('metadata', {}).get('source')
+                        if source:
+                            sources.add(source)
+                    
+                    if sources:
+                        st.write("**Available sources:**")
+                        for source in sorted(sources):
+                            st.code(f'{{"source": "{source}"}}')
+                    else:
+                        st.info("No source metadata found in documents")
+                else:
+                    st.warning("Could not load documents")
+
     query = st.text_input("Search Query", placeholder="Enter your search query...")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         limit = st.number_input("Number of Results", min_value=1, max_value=50, value=5)
 
     with col2:
-        filter_json = st.text_area("Metadata Filter (JSON)", "{}", height=100)
+        search_type = st.selectbox(
+            "Search Type",
+            ["semantic", "keyword", "hybrid"],
+            help="Semantic: Vector similarity search\nKeyword: Full-text search\nHybrid: Combination of both"
+        )
+    
+    with col3:
+        # Add helper text for metadata filter
+        st.markdown("**Metadata Filter**")
+        st.caption("Filter by metadata fields")
+        filter_json = st.text_area(
+            "Enter filter as JSON",
+            placeholder='{"source": "SPRi AI Brief_6월호.pdf"}\n\n# Other examples:\n{"file_id": "abc123"}\n{"source": "document.pdf", "type": "report"}',
+            height=100,
+            help="Enter a JSON object to filter results by metadata. Example: {\"source\": \"filename.pdf\"}"
+        )
 
     if st.button("Search", type="primary"):
         if not query:
@@ -358,7 +435,7 @@ def vector_search_tab():
             return
 
         try:
-            search_data = {"query": query, "limit": limit}
+            search_data = {"query": query, "limit": limit, "search_type": search_type}
 
             if filter_json and filter_json != "{}":
                 search_data["filter"] = json.loads(filter_json)
@@ -395,6 +472,154 @@ def vector_search_tab():
             st.error("Invalid JSON in filter")
         except Exception as e:
             st.error(f"Error: {str(e)}")
+
+
+def document_management_tab():
+    st.header("Document Management")
+    
+    # Get collections
+    success, collections = make_request("GET", "/collections")
+    
+    if not success:
+        st.error(f"Failed to fetch collections: {collections}")
+        return
+    
+    if not collections:
+        st.warning("No collections found. Please create a collection first.")
+        return
+    
+    # Collection selector
+    collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
+    selected_collection = st.selectbox(
+        "Select Collection",
+        list(collection_options.keys()),
+        key="doc_mgmt_collection_select",
+    )
+    collection_id = collection_options[selected_collection]
+    
+    # Fetch documents button
+    if st.button("Fetch Documents", type="primary", key="fetch_docs_button"):
+        with st.spinner("Fetching documents..."):
+            success, documents = make_request(
+                "GET", f"/collections/{collection_id}/documents?limit=100"
+            )
+        
+        if success:
+            if documents:
+                st.session_state['doc_mgmt_documents'] = documents
+                st.session_state['doc_mgmt_collection_id'] = collection_id
+            else:
+                st.info("No documents found in this collection")
+                if 'doc_mgmt_documents' in st.session_state:
+                    del st.session_state['doc_mgmt_documents']
+        else:
+            st.error(f"Failed to fetch documents: {documents}")
+    
+    # Display documents if they exist in session state
+    if 'doc_mgmt_documents' in st.session_state and st.session_state.get('doc_mgmt_collection_id') == collection_id:
+        documents = st.session_state['doc_mgmt_documents']
+        
+        st.divider()
+        st.subheader(f"Documents in Collection ({len(documents)} items)")
+        
+        # Create a table-like view for documents
+        # Prepare data for display
+        display_data = []
+        for idx, doc in enumerate(documents):
+            metadata = doc.get('metadata', {})
+            row_data = {
+                'index': idx + 1,
+                'source': metadata.get('source', 'N/A'),
+                'file_id': metadata.get('file_id', 'N/A'),
+                'timestamp': metadata.get('timestamp', 'N/A'),
+                'document_id': doc.get('id', 'N/A'),
+                'metadata': json.dumps(metadata, ensure_ascii=False) if metadata else '{}'
+            }
+            
+            display_data.append(row_data)
+        
+        # Display as dataframe
+        if display_data:
+            df = pd.DataFrame(display_data)
+            
+            # Configure column order and display
+            column_order = ['index', 'source', 'file_id', 'document_id', 'timestamp', 'metadata']
+            df = df[column_order]
+            
+            # Show the dataframe with custom column config
+            st.dataframe(
+                df, 
+                use_container_width=True, 
+                hide_index=True,
+                column_config={
+                    "index": st.column_config.NumberColumn("Index", width="small"),
+                    "source": st.column_config.TextColumn("Source", width="medium"),
+                    "file_id": st.column_config.TextColumn("File ID", width="medium"),
+                    "document_id": st.column_config.TextColumn("Document ID", width="medium"),
+                    "timestamp": st.column_config.TextColumn("Timestamp", width="medium"),
+                    "metadata": st.column_config.TextColumn("Metadata (JSON)", width="large")
+                }
+            )
+            
+            st.divider()
+            
+            # Document actions section
+            st.subheader("Document Actions")
+            
+            # Group documents by source for better organization
+            sources = {}
+            for idx, doc in enumerate(documents):
+                source = doc.get('metadata', {}).get('source', 'Unknown')
+                if source not in sources:
+                    sources[source] = []
+                sources[source].append((idx, doc))
+            
+            # Display documents grouped by source
+            for source, doc_list in sources.items():
+                with st.expander(f"📄 {source} ({len(doc_list)} chunks)"):
+                    for idx, doc in doc_list:
+                        col1, col2 = st.columns([8, 2])
+                        
+                        with col1:
+                            st.write(f"**Chunk {idx + 1}**")
+                            metadata = doc.get('metadata', {})
+                            
+                            # Display key metadata
+                            meta_cols = st.columns(3)
+                            with meta_cols[0]:
+                                st.caption(f"File ID: {metadata.get('file_id', 'N/A')}")
+                            with meta_cols[1]:
+                                st.caption(f"Doc ID: {doc.get('id', 'N/A')[:8]}...")
+                            with meta_cols[2]:
+                                if 'timestamp' in metadata:
+                                    try:
+                                        ts = datetime.fromisoformat(metadata['timestamp'].replace('Z', '+00:00'))
+                                        st.caption(f"Time: {ts.strftime('%Y-%m-%d %H:%M')}")
+                                    except:
+                                        st.caption(f"Time: {metadata['timestamp']}")
+                        
+                        with col2:
+                            # Delete button
+                            if st.button("🗑️ Delete", key=f"delete_{doc['id']}", type="secondary"):
+                                # Get file_id from metadata if available
+                                file_id = metadata.get('file_id', doc.get('id'))
+                                
+                                with st.spinner("Deleting document..."):
+                                    success, result = make_request(
+                                        "DELETE",
+                                        f"/collections/{collection_id}/documents/{file_id}"
+                                    )
+                                
+                                if success:
+                                    st.success("Document deleted successfully!")
+                                    # Refresh the document list
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed to delete document: {result}")
+        
+        # Refresh button at the bottom
+        if st.button("🔄 Refresh Document List", key="refresh_docs"):
+            st.rerun()
 
 
 def main():
@@ -436,7 +661,7 @@ def main():
             "```"
         )
 
-    tab1, tab2, tab3 = st.tabs(["API Tester", "Document Upload", "Vector Search"])
+    tab1, tab2, tab3, tab4 = st.tabs(["API Tester", "Document Upload", "Vector Search", "Document Management"])
 
     with tab1:
         api_tester_tab()
@@ -446,6 +671,9 @@ def main():
 
     with tab3:
         vector_search_tab()
+    
+    with tab4:
+        document_management_tab()
 
 
 if __name__ == "__main__":

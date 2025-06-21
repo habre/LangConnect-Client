@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -26,6 +26,7 @@ class SearchQuery(BaseModel):
     query: str
     limit: int | None = 10
     filter: dict[str, Any] | None = None
+    search_type: Literal["semantic", "keyword", "hybrid"] = "semantic"
 
 
 class SearchResult(BaseModel):

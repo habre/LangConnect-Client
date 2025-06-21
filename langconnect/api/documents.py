@@ -188,5 +188,7 @@ async def documents_search(
     results = await collection.search(
         search_query.query,
         limit=search_query.limit or 10,
+        search_type=search_query.search_type,
+        filter=search_query.filter,
     )
     return results

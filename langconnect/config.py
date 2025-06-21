@@ -17,13 +17,9 @@ else:
 
 def get_embeddings() -> Embeddings:
     """Get the embeddings instance based on the environment."""
-    if IS_TESTING:
-        from langchain_core.embeddings import DeterministicFakeEmbedding
-
-        return DeterministicFakeEmbedding(size=512)
     from langchain_openai import OpenAIEmbeddings
 
-    return OpenAIEmbeddings()
+    return OpenAIEmbeddings(model="text-embedding-3-small")
 
 
 DEFAULT_EMBEDDINGS = get_embeddings()

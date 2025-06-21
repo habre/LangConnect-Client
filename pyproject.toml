@@ -27,7 +27,14 @@ dependencies = [
     "lxml>=5.4.0",
     "unstructured>=0.17.2",
     "supabase>=2.15.1",
+    "streamlit>=1.37.0",
+    "requests>=2.31.0",
+    "pandas>=2.2.0",
 ]
+
+[project.scripts]
+langconnect-server = "langconnect.server:main"
+langconnect-client = "app:main"
 
 [project.packages]
 find = { where = ["langconnect"] }

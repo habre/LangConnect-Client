@@ -5,17 +5,26 @@ services:
     restart: always
     ports:
       - "5432:5432"
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}  # 더 명확한 DB 이름
+      # 추가 보안 설정
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # 초기화 스크립트 추가 (선택사항)
+      - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    networks:
+      - langconnect-network
 
   api:
     build:
@@ -31,13 +40,28 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      # PostgreSQL 연결 설정
+      POSTGRES_HOST: postgres  # 서비스 이름 사용
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # 추가 설정
+      POSTGRES_SSLMODE: disable  # 개발환경용
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      # Enable test mode for authentication
+      IS_TESTING: "true"
+      # Allow all localhost origins
+      ALLOW_ORIGINS: '["http://localhost:3000", "http://localhost:8080", "http://localhost", "http://127.0.0.1:3000", "http://127.0.0.1:8080", "http://127.0.0.1"]'
     volumes:
       - ./langconnect:/app/langconnect
-    
+    networks:
+      - langconnect-network
+
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  langconnect-network:
+    driver: bridge

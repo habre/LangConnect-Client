@@ -1,0 +1,16 @@
+[server]
+# Enable XSRF protection
+enableXsrfProtection = true
+
+# Enable CORS handling
+enableCORS = true
+
+[browser]
+# Gather usage stats
+gatherUsageStats = false
+
+# Server address
+serverAddress = "localhost"
+
+# Server port
+serverPort = 8501

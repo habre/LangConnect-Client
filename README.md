@@ -1,17 +1,31 @@
 # LangConnect-Client
 
-![](./assets/langconnect-client.png)
+<div align="center">
+  <img src="./assets/langconnect-client.png" alt="LangConnect Client Main Interface" width="100%">
+  <p><em>Intuitive dashboard for managing your RAG system with real-time document processing and search capabilities</em></p>
+</div>
 
 LangConnect-Client is a comprehensive RAG (Retrieval-Augmented Generation) client application built with Streamlit. It provides a user-friendly interface for interacting with the LangConnect API, enabling document management and vector search capabilities powered by PostgreSQL with pgvector extension.
 
-> Collections
-![](./assets/collections.png)
+## 🎯 Key Features in Action
 
-> Documents Management
-![](./assets/document-management.png)
+### 📚 Collections Management
+<div align="center">
+  <img src="./assets/collections.png" alt="Collections Management Interface" width="90%">
+  <p><em>Create and organize document collections with metadata support. View statistics and manage multiple collections effortlessly.</em></p>
+</div>
 
-> Vector Search
-![](./assets/vector-search.png)
+### 📄 Document Management
+<div align="center">
+  <img src="./assets/document-management.png" alt="Document Management Interface" width="90%">
+  <p><em>Upload multiple documents in various formats (PDF, TXT, MD, DOCX) and manage document chunks with detailed previews.</em></p>
+</div>
+
+### 🔍 Vector Search
+<div align="center">
+  <img src="./assets/vector-search.png" alt="Vector Search Interface" width="90%">
+  <p><em>Perform semantic, keyword, or hybrid searches with metadata filtering. Get relevance-scored results instantly.</em></p>
+</div>
 
 ## 📋 Table of Contents
 

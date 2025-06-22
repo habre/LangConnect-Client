@@ -1,6 +1,17 @@
 # LangConnect-Client
 
+![](./assets/langconnect-client.png)
+
 LangConnect-Client is a comprehensive RAG (Retrieval-Augmented Generation) client application built with Streamlit. It provides a user-friendly interface for interacting with the LangConnect API, enabling document management and vector search capabilities powered by PostgreSQL with pgvector extension.
+
+> Collections
+![](./assets/collections.png)
+
+> Documents Management
+![](./assets/document-management.png)
+
+> Vector Search
+![](./assets/vector-search.png)
 
 ## 📋 Table of Contents
 

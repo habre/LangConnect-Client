@@ -41,7 +41,7 @@ Update `mcp_config.json`:
     "langconnect-rag-mcp": {
       "command": "/path/to/python",
       "args": [
-        "/path/to/mcp_langconnect_server.py"
+        "/path/to/mcp_server.py"
       ],
       "env": {
         "API_BASE_URL": "http://localhost:8080",
@@ -72,6 +72,34 @@ Supabase JWT tokens expire after a certain period (typically 1 hour). When your 
 1. Sign in again through the Streamlit UI
 2. Get the new access token
 3. Update your configuration with the new token
+
+## Testing with MCP Inspector
+
+To test the MCP server with [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
+
+### Option 1: Using npx (Recommended)
+
+```bash
+# Set your access token
+export SUPABASE_ACCESS_TOKEN="your-jwt-token-here"
+
+# Run with MCP Inspector
+npx @modelcontextprotocol/inspector python mcp/mcp_server.py
+```
+
+This will start the MCP server and open the Inspector UI in your browser.
+
+### Option 2: Using the SSE Server
+
+1. Start the SSE server:
+```bash
+export SUPABASE_ACCESS_TOKEN="your-jwt-token-here"
+python mcp/mcp_langconnect_sse_server.py
+```
+
+2. In MCP Inspector:
+   - URL: `http://localhost:8765`
+   - Transport: `sse`
 
 ## Security Notes
 

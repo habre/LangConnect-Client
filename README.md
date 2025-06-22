@@ -103,7 +103,6 @@ Once started, you can access:
 - 🎨 **Streamlit UI**: http://localhost:8501
 - 📚 **API Documentation**: http://localhost:8080/docs
 - 🔍 **Health Check**: http://localhost:8080/health
-- 🤖 **MCP SSE Server**: http://localhost:8765/sse
 
 To stop all services:
 ```bash
@@ -327,24 +326,23 @@ LangConnect includes two MCP server implementations that allow AI assistants lik
 
 ### Available Tools
 
-The MCP server provides 10 tools for comprehensive document management:
+The MCP server provides 9 tools for comprehensive document management:
 
 1. **search_documents** - Perform semantic, keyword, or hybrid search
 2. **list_collections** - List all available collections
 3. **get_collection** - Get details about a specific collection
 4. **create_collection** - Create a new collection
-5. **update_collection** - Update collection name or metadata
-6. **delete_collection** - Delete a collection and its documents
-7. **list_documents** - List documents in a collection
-8. **add_documents** - Add text documents with metadata
-9. **delete_document** - Delete specific documents
-10. **get_health_status** - Check API health
+5. **delete_collection** - Delete a collection and its documents
+6. **list_documents** - List documents in a collection
+7. **add_documents** - Add text documents with metadata
+8. **delete_document** - Delete specific documents
+9. **get_health_status** - Check API health
 
 ### Configuration
 
-#### Quick Setup with Auto-Configuration
+#### Step 1: Authentication & Configuration
 
-The easiest way to set up MCP for Claude Desktop:
+First, you need to authenticate and generate the MCP configuration:
 
 ```bash
 # Generate MCP configuration with automatic authentication
@@ -354,8 +352,39 @@ uv run mcp/create_mcp_json.py
 This command will:
 1. Prompt for your email and password
 2. Automatically obtain a Supabase access token
-3. Generate `mcp/mcp_config.json` with all necessary settings
-4. Copy the generated configuration to Claude Desktop settings
+3. Update the `.env` file with the new access token
+4. Generate `mcp/mcp_config.json` with all necessary settings
+
+⚠️ **Important**: Supabase access tokens expire after approximately 1 hour. You'll need to run this command again when your token expires.
+
+#### Step 2: Running the SSE Server
+
+To run the MCP SSE server locally:
+
+```bash
+# Start the SSE server
+uv run mcp/mcp_sse_server.py
+```
+
+The server will start on `http://localhost:8765` and display:
+- Server startup confirmation
+- Note that it's for MCP clients only (not browser accessible)
+
+#### Step 3: Testing with MCP Inspector
+
+You can test the MCP server using the MCP Inspector:
+
+```bash
+# Test with MCP Inspector
+npx @modelcontextprotocol/inspector
+```
+
+In the Inspector:
+1. Select "SSE" as the transport type
+2. Enter `http://localhost:8765` as the URL
+3. Connect and test the available tools
+
+#### Using with Claude Desktop
 
 Simply copy the contents of the generated `mcp/mcp_config.json` file and paste it into your Claude Desktop MCP settings to start using LangConnect tools immediately.
 
@@ -369,7 +398,7 @@ Alternatively, you can manually configure the MCP server in `mcp/mcp_config.json
     "langconnect-rag-mcp": {
       "command": "/path/to/python",
       "args": [
-        "/path/to/langconnect/mcp/mcp_langconnect_server.py"
+        "/path/to/langconnect/mcp/mcp_server.py"
       ],
       "env": {
         "API_BASE_URL": "http://localhost:8080",
@@ -380,36 +409,43 @@ Alternatively, you can manually configure the MCP server in `mcp/mcp_config.json
 }
 ```
 
-#### SSE MCP Server
+#### SSE MCP Server Configuration
 
-The SSE server configuration is defined in `mcp/mcp_sse_config.json`:
+For SSE transport (web-based integrations):
 
 ```json
 {
   "mcpServers": {
     "langconnect-rag-sse": {
-      "url": "http://localhost:8765/sse",
+      "url": "http://localhost:8765",
       "transport": "sse"
     }
   }
 }
 ```
 
-The SSE server runs automatically with `docker compose up -d` and provides:
-- **SSE Endpoint**: http://localhost:8765/sse
-- **Health Check**: http://localhost:8765/health
+The SSE server provides:
+- **Base URL**: http://localhost:8765
+- **Transport**: Server-Sent Events (SSE)
 - **CORS Support**: Enabled for web integrations
 
 ### Authentication
 
-Both MCP servers require Supabase JWT authentication. To get your access token:
+Both MCP servers require Supabase JWT authentication. The easiest way to authenticate is using the `create_mcp_json.py` script as described above, which will:
+- Automatically obtain your access token
+- Update your `.env` file
+- Generate the MCP configuration
+
+#### Manual Token Retrieval (Alternative)
+
+If you need to manually get your access token:
 
 1. Sign in to the Streamlit UI at http://localhost:8501
 2. Open browser Developer Tools (F12) → Application/Storage → Session Storage
 3. Find and copy the `access_token` value
 4. Set it as `SUPABASE_ACCESS_TOKEN` in your configuration
 
-**Note**: Tokens expire after ~1 hour. You'll need to get a new token when it expires.
+⚠️ **Token Expiration**: Supabase access tokens expire after approximately 1 hour. When your token expires, simply run `uv run mcp/create_mcp_json.py` again to get a fresh token.
 
 ### Usage with Claude Desktop
 

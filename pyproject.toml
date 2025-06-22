@@ -37,7 +37,8 @@ dependencies = [
 [project.scripts]
 langconnect-server = "langconnect.server:main"
 langconnect-client = "app:main"
-mcp-langconnect = "mcp.mcp_langconnect_server:main"
+mcp-langconnect = "mcp.mcp_server:main"
+mcp-langconnect-sse = "mcp.mcp_langconnect_sse_server:main"
 
 [project.packages]
 find = { where = ["langconnect"] }

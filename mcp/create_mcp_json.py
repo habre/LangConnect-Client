@@ -58,6 +58,45 @@ def test_token(token: str):
         return False
 
 
+def update_env_file(token: str):
+    """Update the .env file with the new access token."""
+    env_path = Path(__file__).parent.parent / ".env"
+    
+    if not env_path.exists():
+        print("⚠️  .env file not found. Creating new one...")
+        with open(env_path, "w") as f:
+            f.write(f"SUPABASE_ACCESS_TOKEN={token}\n")
+        return
+    
+    # Read existing .env file
+    with open(env_path, "r") as f:
+        lines = f.readlines()
+    
+    # Update or add SUPABASE_ACCESS_TOKEN
+    updated = False
+    new_lines = []
+    
+    for line in lines:
+        if line.strip().startswith("SUPABASE_ACCESS_TOKEN="):
+            new_lines.append(f"SUPABASE_ACCESS_TOKEN={token}\n")
+            updated = True
+        else:
+            new_lines.append(line)
+    
+    # If SUPABASE_ACCESS_TOKEN wasn't found, add it
+    if not updated:
+        # Add newline if file doesn't end with one
+        if new_lines and not new_lines[-1].endswith("\n"):
+            new_lines[-1] += "\n"
+        new_lines.append(f"SUPABASE_ACCESS_TOKEN={token}\n")
+    
+    # Write back to .env file
+    with open(env_path, "w") as f:
+        f.writelines(new_lines)
+    
+    print("✅ Updated .env file with new access token")
+
+
 def get_access_token():
     """Get Supabase access token through user authentication."""
     print("\n🔐 Authentication Required")
@@ -82,6 +121,8 @@ def get_access_token():
         
         if test_token(access_token):
             print("✅ Token is valid and working!")
+            # Update .env file with new token
+            update_env_file(access_token)
             return access_token
         else:
             print("❌ Token validation failed.")
@@ -133,7 +174,7 @@ def create_mcp_json():
     else:  # Mac, Ubuntu etc
         python_path = str(project_root.parent / ".venv" / "bin" / "python")
     
-    server_script = project_root / "mcp_langconnect_server.py"
+    server_script = project_root / "mcp_server.py"
     
     # Get environment variables including access token
     env_vars = get_env_variables()
@@ -160,6 +201,7 @@ def create_mcp_json():
     
     if env_vars['SUPABASE_ACCESS_TOKEN']:
         print("\n⚠️  Important Notes:")
+        print("   - The .env file has been updated with the new access token")
         print("   - The access token will expire in about 1 hour")
         print("   - Run this script again to generate a new configuration with a fresh token")
         print("   - Keep your mcp_config.json file secure and don't commit it to version control")

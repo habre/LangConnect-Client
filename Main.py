@@ -243,62 +243,73 @@ def main():
         return
 
     st.title("🔗 LangConnect Client")
-    
-    st.markdown("""
+
+    st.markdown(
+        """
     Welcome to **LangConnect** - A powerful document management and search system powered by LangChain and PostgreSQL.
     
     ## 🚀 Features
     
     This application provides a comprehensive interface for managing documents with advanced search capabilities:
-    """)
-    
+    """
+    )
+
     # Page navigation
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("### 📚 Collections Management")
-        st.markdown("""
+        st.markdown(
+            """
         - Create and manage document collections
         - View collection statistics
         - Bulk delete collections
-        """)
+        """
+        )
         st.page_link("pages/1_Collections.py", label="Go to Collections", icon="📚")
-        
+
         st.markdown("### 📄 Document Management")
-        st.markdown("""
+        st.markdown(
+            """
         - Upload multiple documents (PDF, TXT, MD, DOCX)
         - View and manage document chunks
         - Delete individual chunks or entire documents
-        """)
+        """
+        )
         st.page_link("pages/2_Documents.py", label="Go to Documents", icon="📄")
-    
+
     with col2:
         st.markdown("### 🔍 Search")
-        st.markdown("""
+        st.markdown(
+            """
         - **Semantic Search**: AI-powered similarity search
         - **Keyword Search**: Traditional full-text search
         - **Hybrid Search**: Best of both approaches
         - Advanced metadata filtering
-        """)
+        """
+        )
         st.page_link("pages/3_Search.py", label="Go to Search", icon="🔍")
-        
+
         st.markdown("### 🧪 API Tester")
-        st.markdown("""
+        st.markdown(
+            """
         - Test all API endpoints directly
         - Explore the API functionality
         - Debug and develop integrations
-        """)
+        """
+        )
         st.page_link("pages/4_API_Tester.py", label="Go to API Tester", icon="🧪")
-    
+
     st.divider()
-    
+
     # Project information
     st.markdown("## 📌 About This Project")
-    
+
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
-        st.markdown("""
+        st.markdown(
+            """
         **LangConnect** is an open-source project that combines the power of:
         - 🦜 **LangChain** for document processing and embeddings
         - 🐘 **PostgreSQL** with pgvector extension for vector storage
@@ -306,28 +317,33 @@ def main():
         - 🎨 **Streamlit** for interactive user interface
         
         Perfect for building RAG (Retrieval-Augmented Generation) applications!
-        """)
-    
+        """
+        )
+
     with col2:
         st.markdown("### 🔗 Links")
-        st.markdown("""
-        - 📦 [GitHub Repository](https://github.com/teddynote-lab/langconnect)
+        st.markdown(
+            """
+        - 📦 [GitHub Repository](https://github.com/teddynote-lab/LangConnect-Client)
         - 👨‍💻 [TeddyNote LAB](https://github.com/teddynote-lab)
-        - 📚 [Documentation](https://github.com/teddynote-lab/langconnect#readme)
-        """)
-    
+        - 📚 [Documentation](https://github.com/teddynote-lab/LangConnect-Client#readme)
+        """
+        )
+
     st.divider()
-    
+
     # Footer
-    st.markdown("""
+    st.markdown(
+        """
     <div style='text-align: center; color: #666; padding: 20px;'>
         Made with ❤️ by <a href='https://github.com/teddynote-lab' target='_blank'>TeddyNote LAB</a>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     with st.sidebar:
         st.header("Configuration")
-        st.write(f"**API Base URL:** {API_BASE_URL}")
 
         if st.session_state.authenticated:
             st.write(f"**User:** {st.session_state.user_email}")
@@ -350,7 +366,6 @@ def main():
                 else:
                     st.error("❌ Connection failed")
                     st.error(result)
-
 
 
 if __name__ == "__main__":

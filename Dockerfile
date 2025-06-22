@@ -2,25 +2,34 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv using pip
+RUN pip install uv
+
 # Copy requirements first for better layer caching
 COPY pyproject.toml uv.lock ./
 
-# Copy application code (needs to be done before pip install .[dev])
+# Copy application code
 COPY . .
 
-# Install build dependencies and runtime dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc python3-dev libpq-dev && \
-    pip install --no-cache-dir pip -U && \
-    pip install --no-cache-dir hatch && \
-    pip install --no-cache-dir '.[dev]' && \
-    # Purge build-only dependencies
-    apt-get purge -y --auto-remove gcc python3-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install Python dependencies using uv
+RUN uv sync --frozen
 
-# Expose the application port
-EXPOSE 8080
+# Install additional dependencies
+RUN pip install streamlit
 
-# Command to run the application
+# Expose ports for both API and Streamlit
+# Note: The actual Streamlit port can be customized via STREAMLIT_PORT env var
+EXPOSE 8080 8501
+
+# Default command runs the API server
+# This can be overridden in docker-compose.yml for the streamlit service
 CMD ["uv", "run", "uvicorn", "langconnect.server:APP", "--host", "0.0.0.0", "--port", "8080"]

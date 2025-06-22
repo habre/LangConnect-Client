@@ -58,6 +58,31 @@ services:
     networks:
       - langconnect-network
 
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: langconnect-streamlit
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "${STREAMLIT_PORT:-8501}:${STREAMLIT_PORT:-8501}"
+    env_file:
+      - .env
+    environment:
+      API_BASE_URL: http://api:8080
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      STREAMLIT_PORT: ${STREAMLIT_PORT:-8501}
+    command: uv run streamlit run Main.py --server.port=${STREAMLIT_PORT:-8501} --server.address=0.0.0.0
+    volumes:
+      - ./Main.py:/app/Main.py
+      - ./pages:/app/pages
+      - ./.streamlit:/app/.streamlit
+    networks:
+      - langconnect-network
+
 volumes:
   postgres_data:
     driver: local

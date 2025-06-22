@@ -175,31 +175,93 @@ with tab1:
     else:
         # Display collections count
         st.write(f"**Total Collections:** {len(collections)}")
+        
+        # Pre-fetch all collection stats at once to improve performance
+        collection_stats = {}
+        with st.spinner("Loading collection statistics..."):
+            for collection in collections:
+                # Fetch all documents using pagination
+                all_documents = []
+                offset = 0
+                limit = 100
+                
+                while True:
+                    success, documents = make_request(
+                        "GET",
+                        f"/collections/{collection['uuid']}/documents",
+                        data={"limit": limit, "offset": offset}
+                    )
+                    
+                    if not success:
+                        break
+                        
+                    if not documents:
+                        break
+                        
+                    all_documents.extend(documents)
+                    
+                    # If we got less than the limit, we've reached the end
+                    if len(documents) < limit:
+                        break
+                        
+                    offset += limit
+                
+                if all_documents:
+                    total_chunks = len(all_documents)
+                    
+                    # Count unique documents by file_id
+                    unique_file_ids = set()
+                    for doc in all_documents:
+                        file_id = doc.get("metadata", {}).get("file_id")
+                        if file_id:
+                            unique_file_ids.add(file_id)
+                    
+                    total_documents = len(unique_file_ids)
+                    collection_stats[collection['uuid']] = {
+                        "documents": total_documents,
+                        "chunks": total_chunks
+                    }
+                else:
+                    collection_stats[collection['uuid']] = {
+                        "documents": 0,
+                        "chunks": 0
+                    }
 
         # Add column headers
-        header_col1, header_col2, header_col3, header_col4 = st.columns([3, 4, 4, 1])
+        header_col1, header_col2, header_col3, header_col4, header_col5, header_col6 = st.columns([3, 1.5, 1.5, 3, 2, 1])
         with header_col1:
             st.markdown("**Collection Name**")
         with header_col2:
-            st.markdown("**UUID**")
+            st.markdown("**Documents**")
         with header_col3:
-            st.markdown("**Metadata**")
+            st.markdown("**Chunks**")
         with header_col4:
+            st.markdown("**UUID**")
+        with header_col5:
+            st.markdown("**Metadata**")
+        with header_col6:
             st.markdown("**Action**")
 
         st.divider()
 
         # Display collections
         for idx, collection in enumerate(collections):
-            col1, col2, col3, col4 = st.columns([3, 4, 4, 1])
+            col1, col2, col3, col4, col5, col6 = st.columns([3, 1.5, 1.5, 3, 2, 1])
 
             with col1:
                 st.write(f"**{collection['name']}**")
 
+            # Display document stats for this collection
+            stats = collection_stats.get(collection['uuid'], {"documents": 0, "chunks": 0})
             with col2:
+                st.metric("", stats["documents"])
+            with col3:
+                st.metric("", stats["chunks"])
+
+            with col4:
                 st.code(collection["uuid"], language=None)
 
-            with col3:
+            with col5:
                 metadata_str = (
                     json.dumps(collection.get("metadata", {}), ensure_ascii=False)
                     if collection.get("metadata")
@@ -207,7 +269,7 @@ with tab1:
                 )
                 st.text(metadata_str)
 
-            with col4:
+            with col6:
                 if st.button(
                     "🗑️",
                     key=f"delete_collection_{collection['uuid']}",
@@ -253,102 +315,3 @@ with tab1:
             if idx < len(collections) - 1:
                 st.divider()
 
-    # Collection details section
-    if collections:
-        st.divider()
-        st.subheader("📊 Collection Details")
-
-        collection_options = {f"{c['name']} ({c['uuid']})": c for c in collections}
-        selected = st.selectbox(
-            "Select a collection to view details",
-            list(collection_options.keys()),
-            key="collection_details_select",
-        )
-
-        if selected:
-            selected_collection = collection_options[selected]
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                st.write("**Collection Information:**")
-                st.write(f"- **Name:** {selected_collection['name']}")
-                st.write(f"- **UUID:** `{selected_collection['uuid']}`")
-
-            with col2:
-                st.write("**Metadata:**")
-                metadata = selected_collection.get("metadata", {})
-                if metadata:
-                    st.json(metadata)
-                else:
-                    st.write("No metadata")
-
-            # Quick stats
-            if st.button(
-                "📈 Get Collection Stats", key=f"stats_{selected_collection['uuid']}"
-            ):
-                with st.spinner("Fetching documents..."):
-                    success, documents = make_request(
-                        "GET",
-                        f"/collections/{selected_collection['uuid']}/documents?limit=100",
-                    )
-
-                if success and documents:
-                    st.write("**Collection Statistics:**")
-
-                    # Chunk count
-                    total_chunks = len(documents)
-                    st.write(f"- Total chunks: {total_chunks}")
-                    if total_chunks == 100:
-                        st.caption("Note: Showing stats for first 100 chunks only")
-
-                    # Debug: Show first few chunks to understand structure
-                    with st.expander("Debug: First 3 chunks (click to expand)"):
-                        for i, doc in enumerate(documents[:3]):
-                            st.write(f"Chunk {i+1}:")
-                            st.json(
-                                {
-                                    "id": doc.get("id", "N/A")[:8] + "...",
-                                    "metadata": doc.get("metadata", {}),
-                                    "content_preview": doc.get("page_content", "")[:100]
-                                    + "...",
-                                }
-                            )
-
-                    # Document analysis by file_id
-                    documents_by_file_id = {}
-                    for chunk in documents:
-                        metadata = chunk.get("metadata", {})
-                        file_id = metadata.get("file_id")
-                        if file_id:
-                            if file_id not in documents_by_file_id:
-                                documents_by_file_id[file_id] = {
-                                    "source": metadata.get("source", "Unknown"),
-                                    "chunks": 0,
-                                }
-                            documents_by_file_id[file_id]["chunks"] += 1
-
-                    # Show document count
-                    st.write(f"- Total documents: {len(documents_by_file_id)}")
-
-                    if documents_by_file_id:
-                        st.write("\n**Documents and their chunks:**")
-                        # Show documents with most chunks first
-                        sorted_docs = sorted(
-                            documents_by_file_id.items(),
-                            key=lambda x: x[1]["chunks"],
-                            reverse=True,
-                        )
-                        for file_id, info in sorted_docs[:10]:  # Show top 10
-                            source_name = info["source"]
-                            chunk_count = info["chunks"]
-                            st.write(f"  - {source_name}: {chunk_count} chunks")
-
-                        if len(sorted_docs) > 10:
-                            st.caption(
-                                f"... and {len(sorted_docs) - 10} more documents"
-                            )
-                elif success:
-                    st.info("No documents in this collection")
-                else:
-                    st.error(f"Failed to fetch documents: {documents}")

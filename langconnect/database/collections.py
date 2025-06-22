@@ -324,30 +324,20 @@ class Collection:
         return True
 
     async def list(self, *, limit: int = 10, offset: int = 0) -> list[dict[str, Any]]:
-        """List one representative chunk per file (unique file_id) in this collection."""
+        """List all document chunks in this collection."""
         async with get_db_connection() as conn:
             rows = await conn.fetch(
                 """
-                WITH UniqueFileChunks AS (
-                  SELECT DISTINCT ON (lpe.cmetadata->>'file_id')
-                         lpe.id,
-                         lpe.cmetadata->>'file_id' AS file_id
-                    FROM langchain_pg_embedding lpe
-                    JOIN langchain_pg_collection lpc
-                      ON lpe.collection_id = lpc.uuid
-                   WHERE lpc.uuid = $1
-                     AND lpc.cmetadata->>'owner_id' = $2
-                     AND lpe.cmetadata->>'file_id' IS NOT NULL
-                   ORDER BY lpe.cmetadata->>'file_id', lpe.id
-                )
-                SELECT emb.id,
-                       emb.document,
-                       emb.cmetadata
-                FROM langchain_pg_embedding AS emb
-                JOIN UniqueFileChunks AS ufc
-                  ON emb.id = ufc.id
-                ORDER BY ufc.file_id
-                LIMIT  $3
+                SELECT lpe.id,
+                       lpe.document,
+                       lpe.cmetadata
+                  FROM langchain_pg_embedding lpe
+                  JOIN langchain_pg_collection lpc
+                    ON lpe.collection_id = lpc.uuid
+                 WHERE lpc.uuid = $1
+                   AND lpc.cmetadata->>'owner_id' = $2
+                 ORDER BY lpe.cmetadata->>'file_id', lpe.id
+                 LIMIT  $3
                 OFFSET $4
                 """,
                 self.collection_id,
@@ -365,6 +355,8 @@ class Collection:
                     "content": r["document"],
                     "metadata": metadata,
                     "collection_id": str(self.collection_id),
+                    # For compatibility with UI expecting 'page_content'
+                    "page_content": r["document"],
                 }
             )
 

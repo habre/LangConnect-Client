@@ -105,7 +105,7 @@ tab1, tab2, tab3 = st.tabs(["Upload", "List", "Management"])
 
 with tab1:
     st.header("📤 Document Upload & Embedding")
-    
+
     collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
     selected_collection = st.selectbox(
         "Select Collection",
@@ -205,7 +205,7 @@ with tab1:
 
 with tab2:
     st.header("📋 View Documents")
-    
+
     collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
     selected_collection = st.selectbox(
         "Select Collection",
@@ -215,27 +215,54 @@ with tab2:
     collection_id = collection_options[selected_collection]
 
     if st.button("Fetch Documents", type="primary"):
-        with st.spinner("Fetching documents..."):
-            success, documents = make_request(
-                "GET", f"/collections/{collection_id}/documents?limit=100"
-            )
+        with st.spinner("Fetching all documents..."):
+            # Fetch all documents using pagination
+            all_documents = []
+            offset = 0
+            limit = 100
+
+            while True:
+                success, documents = make_request(
+                    "GET",
+                    f"/collections/{collection_id}/documents",
+                    data={"limit": limit, "offset": offset},
+                )
+
+                if not success:
+                    st.error(f"Failed to fetch documents: {documents}")
+                    break
+
+                if not documents:
+                    break
+
+                all_documents.extend(documents)
+
+                # If we got less than the limit, we've reached the end
+                if len(documents) < limit:
+                    break
+
+                offset += limit
+
+            documents = all_documents
 
         if success:
             if documents:
                 st.success(f"Found {len(documents)} documents")
-                
+
                 # Create DataFrame
                 df_data = []
                 for doc in documents:
                     metadata = doc.get("metadata", {})
-                    df_data.append({
-                        "ID": doc.get("id", "N/A")[:8] + "...",
-                        "Source": metadata.get("source", "N/A"),
-                        "File ID": metadata.get("file_id", "N/A"),
-                        "Timestamp": metadata.get("timestamp", "N/A"),
-                        "Content Preview": doc.get("page_content", "")[:100] + "..."
-                    })
-                
+                    df_data.append(
+                        {
+                            "ID": doc.get("id", "N/A") + "...",
+                            "Content Preview": doc.get("content", "") + "...",
+                            "Source": metadata.get("source", "N/A"),
+                            "File ID": metadata.get("file_id", "N/A"),
+                            "Timestamp": metadata.get("timestamp", "N/A"),
+                        }
+                    )
+
                 df = pd.DataFrame(df_data)
                 st.dataframe(df, use_container_width=True)
             else:
@@ -245,7 +272,7 @@ with tab2:
 
 with tab3:
     st.header("🔧 Document Management")
-    
+
     # Collection selector
     collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
     selected_collection = st.selectbox(
@@ -257,10 +284,35 @@ with tab3:
 
     # Fetch documents button
     if st.button("Fetch Documents", type="primary", key="fetch_docs_button"):
-        with st.spinner("Fetching documents..."):
-            success, documents = make_request(
-                "GET", f"/collections/{collection_id}/documents?limit=100"
-            )
+        with st.spinner("Fetching all documents..."):
+            # Fetch all documents using pagination
+            all_documents = []
+            offset = 0
+            limit = 100
+
+            while True:
+                success, documents = make_request(
+                    "GET",
+                    f"/collections/{collection_id}/documents",
+                    data={"limit": limit, "offset": offset},
+                )
+
+                if not success:
+                    st.error(f"Failed to fetch documents: {documents}")
+                    break
+
+                if not documents:
+                    break
+
+                all_documents.extend(documents)
+
+                # If we got less than the limit, we've reached the end
+                if len(documents) < limit:
+                    break
+
+                offset += limit
+
+            documents = all_documents
 
         if success:
             if documents:
@@ -270,8 +322,6 @@ with tab3:
                 st.info("No documents found in this collection")
                 if "doc_mgmt_documents" in st.session_state:
                     del st.session_state["doc_mgmt_documents"]
-        else:
-            st.error(f"Failed to fetch documents: {documents}")
 
     # Display documents if they exist in session state
     if (

@@ -4,6 +4,7 @@ import json
 import os
 from dotenv import load_dotenv
 import pandas as pd
+import time
 
 load_dotenv()
 
@@ -150,168 +151,187 @@ with tab2:
 with tab1:
     st.header("📋 Existing Collections")
 
+    # Initialize session state for collections dataframe
+    if "collections_df" not in st.session_state:
+        st.session_state.collections_df = None
+    if "collections_stats" not in st.session_state:
+        st.session_state.collections_stats = None
+
     # Refresh button
     col1, col2 = st.columns([1, 5])
     with col1:
         if st.button("🔄 Refresh", key="refresh_collections"):
-            if "collections_list" in st.session_state:
-                del st.session_state["collections_list"]
+            st.session_state.collections_df = None
+            st.session_state.collections_stats = None
 
-    # Fetch collections
-    if "collections_list" not in st.session_state:
+    # Fetch collections and stats if not in session state
+    if st.session_state.collections_df is None:
         with st.spinner("Loading collections..."):
             success, collections = make_request("GET", "/collections")
 
-            if success:
-                st.session_state["collections_list"] = collections
-            else:
+            if not success:
                 st.error(f"Failed to fetch collections: {collections}")
                 st.stop()
 
-    collections = st.session_state.get("collections_list", [])
+            st.session_state["collections_list"] = collections
 
-    if not collections:
-        st.info("No collections found. Create one to get started!")
-    else:
-        # Display collections count
-        st.write(f"**Total Collections:** {len(collections)}")
-        
-        # Pre-fetch all collection stats at once to improve performance
-        collection_stats = {}
-        with st.spinner("Loading collection statistics..."):
-            for collection in collections:
-                # Fetch all documents using pagination
-                all_documents = []
-                offset = 0
-                limit = 100
-                
-                while True:
-                    success, documents = make_request(
-                        "GET",
-                        f"/collections/{collection['uuid']}/documents",
-                        data={"limit": limit, "offset": offset}
-                    )
-                    
-                    if not success:
-                        break
+            if not collections:
+                st.info("No collections found. Create one to get started!")
+                st.session_state.collections_df = pd.DataFrame()
+                st.session_state.collections_stats = {}
+            else:
+                # Pre-fetch all collection stats at once to improve performance
+                if st.session_state.collections_stats is None:
+                    collection_stats = {}
+                    with st.spinner("Loading collection statistics..."):
+                        for collection in collections:
+                            # Fetch all documents using pagination
+                            all_documents = []
+                            offset = 0
+                            limit = 100
+                            
+                            while True:
+                                success, documents = make_request(
+                                    "GET",
+                                    f"/collections/{collection['uuid']}/documents",
+                                    data={"limit": limit, "offset": offset}
+                                )
+                                
+                                if not success:
+                                    break
+                                    
+                                if not documents:
+                                    break
+                                    
+                                all_documents.extend(documents)
+                                
+                                # If we got less than the limit, we've reached the end
+                                if len(documents) < limit:
+                                    break
+                                    
+                                offset += limit
+                            
+                            if all_documents:
+                                total_chunks = len(all_documents)
+                                
+                                # Count unique documents by file_id
+                                unique_file_ids = set()
+                                for doc in all_documents:
+                                    file_id = doc.get("metadata", {}).get("file_id")
+                                    if file_id:
+                                        unique_file_ids.add(file_id)
+                                
+                                total_documents = len(unique_file_ids)
+                                collection_stats[collection['uuid']] = {
+                                    "documents": total_documents,
+                                    "chunks": total_chunks
+                                }
+                            else:
+                                collection_stats[collection['uuid']] = {
+                                    "documents": 0,
+                                    "chunks": 0
+                                }
                         
-                    if not documents:
-                        break
-                        
-                    all_documents.extend(documents)
-                    
-                    # If we got less than the limit, we've reached the end
-                    if len(documents) < limit:
-                        break
-                        
-                    offset += limit
-                
-                if all_documents:
-                    total_chunks = len(all_documents)
-                    
-                    # Count unique documents by file_id
-                    unique_file_ids = set()
-                    for doc in all_documents:
-                        file_id = doc.get("metadata", {}).get("file_id")
-                        if file_id:
-                            unique_file_ids.add(file_id)
-                    
-                    total_documents = len(unique_file_ids)
-                    collection_stats[collection['uuid']] = {
-                        "documents": total_documents,
-                        "chunks": total_chunks
-                    }
+                        st.session_state.collections_stats = collection_stats
                 else:
-                    collection_stats[collection['uuid']] = {
-                        "documents": 0,
-                        "chunks": 0
-                    }
+                    collection_stats = st.session_state.collections_stats
 
-        # Add column headers
-        header_col1, header_col2, header_col3, header_col4, header_col5, header_col6 = st.columns([3, 1.5, 1.5, 3, 2, 1])
-        with header_col1:
-            st.markdown("**Collection Name**")
-        with header_col2:
-            st.markdown("**Documents**")
-        with header_col3:
-            st.markdown("**Chunks**")
-        with header_col4:
-            st.markdown("**UUID**")
-        with header_col5:
-            st.markdown("**Metadata**")
-        with header_col6:
-            st.markdown("**Action**")
+                # Create DataFrame for collections
+                df_data = []
+                for collection in collections:
+                    stats = collection_stats.get(collection['uuid'], {"documents": 0, "chunks": 0})
+                    df_data.append({
+                        "Name": collection['name'],
+                        "Documents": stats["documents"],
+                        "Chunks": stats["chunks"],
+                        "UUID": collection["uuid"],
+                        "Metadata": json.dumps(collection.get("metadata", {}), ensure_ascii=False) if collection.get("metadata") else "{}",
+                        "_uuid": collection["uuid"]  # Hidden column for operations
+                    })
+                
+                df = pd.DataFrame(df_data)
+                st.session_state.collections_df = df
 
-        st.divider()
+    # Display collections dataframe
+    if st.session_state.collections_df is not None and len(st.session_state.collections_df) > 0:
+        st.write(f"**Total Collections:** {len(st.session_state.collections_df)}")
+        
+        # Display selectable dataframe
+        event = st.dataframe(
+            st.session_state.collections_df[
+                ["Name", "Documents", "Chunks", "UUID", "Metadata"]
+            ],  # Show only visible columns
+            use_container_width=True,
+            on_select="rerun",
+            selection_mode="multi-row",
+            key="collections_list_df",
+        )
 
-        # Display collections
-        for idx, collection in enumerate(collections):
-            col1, col2, col3, col4, col5, col6 = st.columns([3, 1.5, 1.5, 3, 2, 1])
+        # Process selection
+        if event.selection:
+            selected_indices = event.selection.rows
+            if len(selected_indices) > 0:
+                st.write(f"**Selected {len(selected_indices)} collection(s)**")
 
-            with col1:
-                st.write(f"**{collection['name']}**")
-
-            # Display document stats for this collection
-            stats = collection_stats.get(collection['uuid'], {"documents": 0, "chunks": 0})
-            with col2:
-                st.metric("", stats["documents"])
-            with col3:
-                st.metric("", stats["chunks"])
-
-            with col4:
-                st.code(collection["uuid"], language=None)
-
-            with col5:
-                metadata_str = (
-                    json.dumps(collection.get("metadata", {}), ensure_ascii=False)
-                    if collection.get("metadata")
-                    else "{}"
-                )
-                st.text(metadata_str)
-
-            with col6:
-                if st.button(
-                    "🗑️",
-                    key=f"delete_collection_{collection['uuid']}",
-                    help="Delete collection",
-                ):
-                    st.session_state[f'confirm_delete_{collection["uuid"]}'] = True
-
-            # Confirmation dialog
-            if st.session_state.get(f'confirm_delete_{collection["uuid"]}', False):
-                st.warning(
-                    f"⚠️ Are you sure you want to delete '{collection['name']}'? This will also delete all documents in the collection."
-                )
-                confirm_col1, confirm_col2 = st.columns(2)
-
-                with confirm_col1:
+                # Show delete button
+                col1, col2 = st.columns([1, 5])
+                with col1:
                     if st.button(
-                        "Yes, Delete",
-                        key=f"confirm_yes_{collection['uuid']}",
-                        type="primary",
+                        "🗑️ Delete Selected",
+                        type="secondary",
+                        key="delete_selected_collections",
                     ):
-                        with st.spinner("Deleting collection..."):
+                        # Get UUIDs of selected collections
+                        selected_uuids = []
+                        selected_names = []
+                        for idx in selected_indices:
+                            if idx < len(st.session_state.collections_df):
+                                uuid = st.session_state.collections_df.iloc[idx]["_uuid"]
+                                name = st.session_state.collections_df.iloc[idx]["Name"]
+                                selected_uuids.append(uuid)
+                                selected_names.append(name)
+
+                        # Delete each selected collection
+                        deleted_count = 0
+                        failed_count = 0
+
+                        progress_text = st.empty()
+                        progress_bar = st.progress(0)
+
+                        for i, (uuid, name) in enumerate(zip(selected_uuids, selected_names)):
+                            progress_text.text(
+                                f"Deleting collection {i+1} of {len(selected_uuids)}: {name}..."
+                            )
+                            progress_bar.progress((i + 1) / len(selected_uuids))
+
                             success, result = make_request(
-                                "DELETE", f"/collections/{collection['uuid']}"
+                                "DELETE", f"/collections/{uuid}"
                             )
 
-                        if success:
+                            if success:
+                                deleted_count += 1
+                            else:
+                                failed_count += 1
+
+                        progress_text.empty()
+                        progress_bar.empty()
+
+                        if deleted_count > 0:
                             st.success(
-                                f"Collection '{collection['name']}' deleted successfully!"
+                                f"✅ Successfully deleted {deleted_count} collection(s)"
                             )
-                            # Clear session state
-                            del st.session_state[f'confirm_delete_{collection["uuid"]}']
-                            if "collections_list" in st.session_state:
-                                del st.session_state["collections_list"]
-                            st.rerun()
-                        else:
-                            st.error(f"Failed to delete collection: {result}")
 
-                with confirm_col2:
-                    if st.button("Cancel", key=f"confirm_no_{collection['uuid']}"):
-                        del st.session_state[f'confirm_delete_{collection["uuid"]}']
+                        if failed_count > 0:
+                            st.error(
+                                f"❌ Failed to delete {failed_count} collection(s)"
+                            )
+
+                        # Clear session state to force refresh
+                        st.session_state.collections_df = None
+                        st.session_state.collections_stats = None
+                        time.sleep(1)
                         st.rerun()
+    elif st.session_state.collections_df is not None:
+        st.info("No collections found. Create one to get started!")
 
-            if idx < len(collections) - 1:
-                st.divider()
 

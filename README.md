@@ -103,6 +103,7 @@ Once started, you can access:
 - 🎨 **Streamlit UI**: http://localhost:8501
 - 📚 **API Documentation**: http://localhost:8080/docs
 - 🔍 **Health Check**: http://localhost:8080/health
+- 🤖 **MCP SSE Server**: http://localhost:8765/sse
 
 To stop all services:
 ```bash
@@ -319,7 +320,10 @@ The Streamlit app supports persistent authentication through:
 
 ## MCP (Model Context Protocol) Server
 
-LangConnect includes an MCP server that allows AI assistants like Claude to interact with your document collections programmatically.
+LangConnect includes two MCP server implementations that allow AI assistants like Claude to interact with your document collections programmatically:
+
+1. **Standard MCP Server** - Uses stdio transport for direct integration
+2. **SSE MCP Server** - Uses Server-Sent Events for web-based integration (runs on port 8765)
 
 ### Available Tools
 
@@ -338,7 +342,26 @@ The MCP server provides 10 tools for comprehensive document management:
 
 ### Configuration
 
-The MCP server configuration is defined in `mcp/mcp_config.json`:
+#### Quick Setup with Auto-Configuration
+
+The easiest way to set up MCP for Claude Desktop:
+
+```bash
+# Generate MCP configuration with automatic authentication
+uv run mcp/create_mcp_json.py
+```
+
+This command will:
+1. Prompt for your email and password
+2. Automatically obtain a Supabase access token
+3. Generate `mcp/mcp_config.json` with all necessary settings
+4. Copy the generated configuration to Claude Desktop settings
+
+Simply copy the contents of the generated `mcp/mcp_config.json` file and paste it into your Claude Desktop MCP settings to start using LangConnect tools immediately.
+
+#### Manual Configuration (Standard MCP Server)
+
+Alternatively, you can manually configure the MCP server in `mcp/mcp_config.json`:
 
 ```json
 {
@@ -350,18 +373,50 @@ The MCP server configuration is defined in `mcp/mcp_config.json`:
       ],
       "env": {
         "API_BASE_URL": "http://localhost:8080",
-        "API_TOKEN": "your-auth-token"
+        "SUPABASE_ACCESS_TOKEN": "your-jwt-token-here"
       }
     }
   }
 }
 ```
 
+#### SSE MCP Server
+
+The SSE server configuration is defined in `mcp/mcp_sse_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "langconnect-rag-sse": {
+      "url": "http://localhost:8765/sse",
+      "transport": "sse"
+    }
+  }
+}
+```
+
+The SSE server runs automatically with `docker compose up -d` and provides:
+- **SSE Endpoint**: http://localhost:8765/sse
+- **Health Check**: http://localhost:8765/health
+- **CORS Support**: Enabled for web integrations
+
+### Authentication
+
+Both MCP servers require Supabase JWT authentication. To get your access token:
+
+1. Sign in to the Streamlit UI at http://localhost:8501
+2. Open browser Developer Tools (F12) → Application/Storage → Session Storage
+3. Find and copy the `access_token` value
+4. Set it as `SUPABASE_ACCESS_TOKEN` in your configuration
+
+**Note**: Tokens expire after ~1 hour. You'll need to get a new token when it expires.
+
 ### Usage with Claude Desktop
 
-1. Update the configuration file with your paths and authentication token
-2. Add the configuration to Claude Desktop's MCP settings
-3. Claude will have access to all LangConnect tools for document management and search
+1. Get your Supabase access token (see Authentication above)
+2. Update the configuration file with your paths and token
+3. Add the configuration to Claude Desktop's MCP settings
+4. Claude will have access to all LangConnect tools for document management and search
 
 Example usage in Claude:
 - "Search for documents about machine learning in my research collection"
@@ -386,6 +441,9 @@ Example usage in Claude:
 | POSTGRES_DB | PostgreSQL database name | postgres | No |
 | **API** |
 | API_BASE_URL | API base URL | http://localhost:8080 | No |
+| **MCP SSE Server** |
+| SSE_PORT | Port for MCP SSE server | 8765 | No |
+| SUPABASE_ACCESS_TOKEN | JWT token from Supabase auth | - | Yes (for MCP) |
 
 ## Testing
 

@@ -81,7 +81,9 @@ def make_request(
                         st.session_state.authenticated = False
                         st.session_state.access_token = None
                         st.session_state.user = None
-                        st.error("인증 토큰이 만료되었습니다. 다시 로그인해주세요.")
+                        st.error(
+                            "Your authentication token has expired. Please sign in again."
+                        )
                         st.switch_page("Main.py")
                 except:
                     pass
@@ -171,7 +173,7 @@ with col3:
     st.caption("Filter by metadata fields")
     filter_json = st.text_area(
         "Enter filter as JSON",
-        placeholder='{"source": "SPRi AI Brief_6월호.pdf"}\n\n# Other examples:\n{"file_id": "abc123"}\n{"source": "document.pdf", "type": "report"}',
+        placeholder='{"source": "sample.pdf"}\n\n# Other examples:\n{"file_id": "abc123"}\n{"source": "document.pdf", "type": "report"}',
         height=100,
         help='Enter a JSON object to filter results by metadata. Example: {"source": "filename.pdf"}',
     )

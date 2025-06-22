@@ -10,12 +10,12 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}  # 더 명확한 DB 이름
-      # 추가 보안 설정
+      POSTGRES_DB: ${POSTGRES_DB}  # More descriptive DB name
+      # Additional security settings
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # 초기화 스크립트 추가 (선택사항)
+      # Initialize scripts (optional)
       - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
@@ -40,14 +40,14 @@ services:
     env_file:
       - .env
     environment:
-      # PostgreSQL 연결 설정
-      POSTGRES_HOST: postgres  # 서비스 이름 사용
+      # PostgreSQL connection settings
+      POSTGRES_HOST: postgres  # Use service name
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      # 추가 설정
-      POSTGRES_SSLMODE: disable  # 개발환경용
+      # Additional settings
+      POSTGRES_SSLMODE: disable  # For development environment
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
       # Enable test mode for authentication
       IS_TESTING: "false"
@@ -80,6 +80,28 @@ services:
       - ./Main.py:/app/Main.py
       - ./pages:/app/pages
       - ./.streamlit:/app/.streamlit
+    networks:
+      - langconnect-network
+
+  mcp-sse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: langconnect-mcp-sse
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "${SSE_PORT:-8765}:${SSE_PORT:-8765}"
+    env_file:
+      - .env
+    environment:
+      API_BASE_URL: http://api:8080
+      SUPABASE_ACCESS_TOKEN: ${SUPABASE_ACCESS_TOKEN:-}
+      SSE_PORT: ${SSE_PORT:-8765}
+    command: uv run python mcp/mcp_langconnect_sse_server.py
+    volumes:
+      - ./mcp:/app/mcp
     networks:
       - langconnect-network
 

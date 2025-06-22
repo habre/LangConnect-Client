@@ -12,7 +12,9 @@ load_dotenv()
 
 # Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
-API_TOKEN = os.getenv("API_TOKEN", "user1")
+# For Supabase authentication, we need to get the access token from environment
+# This should be set when initializing the MCP server with a valid JWT token
+SUPABASE_ACCESS_TOKEN = os.getenv("SUPABASE_ACCESS_TOKEN", "")
 
 # Create MCP server
 mcp = FastMCP(
@@ -111,7 +113,7 @@ class LangConnectClient:
 
 
 # Initialize client
-client = LangConnectClient(API_BASE_URL, API_TOKEN)
+client = LangConnectClient(API_BASE_URL, SUPABASE_ACCESS_TOKEN)
 
 
 def format_search_results(results: List[Dict]) -> str:
@@ -490,7 +492,7 @@ async def get_health_status() -> str:
         markdown += f"- **Status:** {result.get('status', 'Unknown')}\n"
         markdown += f"- **API Base URL:** {API_BASE_URL}\n"
         markdown += (
-            f"- **Authentication:** {'Configured' if API_TOKEN else 'Not configured'}\n"
+            f"- **Authentication:** {'Configured' if SUPABASE_ACCESS_TOKEN else 'Not configured'}\n"
         )
 
         return markdown
@@ -504,7 +506,12 @@ if __name__ == "__main__":
     try:
         print("Starting LangConnect MCP server...", file=sys.stderr)
         print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
-        print(f"API_TOKEN configured: {'Yes' if API_TOKEN else 'No'}", file=sys.stderr)
+        print(f"SUPABASE_ACCESS_TOKEN configured: {'Yes' if SUPABASE_ACCESS_TOKEN else 'No'}", file=sys.stderr)
+        
+        if not SUPABASE_ACCESS_TOKEN:
+            print("WARNING: No SUPABASE_ACCESS_TOKEN provided. API calls will likely fail.", file=sys.stderr)
+            print("Please set SUPABASE_ACCESS_TOKEN environment variable with a valid JWT token.", file=sys.stderr)
+        
         mcp.run()
     except Exception as e:
         print(f"Error starting MCP server: {e}", file=sys.stderr)

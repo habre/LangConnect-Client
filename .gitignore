@@ -159,3 +159,6 @@ _dist
 
 prof
 virtualenv/
+
+# MCP configuration with sensitive data
+mcp/mcp_config.json

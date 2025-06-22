@@ -28,7 +28,7 @@ RUN pip install streamlit
 
 # Expose ports for both API and Streamlit
 # Note: The actual Streamlit port can be customized via STREAMLIT_PORT env var
-EXPOSE 8080 8501
+EXPOSE 8080 8501 8765
 
 # Default command runs the API server
 # This can be overridden in docker-compose.yml for the streamlit service

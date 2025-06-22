@@ -64,6 +64,31 @@ def make_request(
             except:
                 return True, response.text
         else:
+            # Check for authentication errors (401 Unauthorized or token expiry)
+            if response.status_code == 401:
+                # Clear authentication state
+                st.session_state.authenticated = False
+                st.session_state.access_token = None
+                st.session_state.user = None
+                st.error("Your authentication token has expired. Please sign in again.")
+                st.switch_page("Main.py")
+
+            # Check for token expiry in 500 errors
+            elif response.status_code == 500:
+                try:
+                    error_text = response.text.lower()
+                    if "token" in error_text and (
+                        "expired" in error_text or "invalid" in error_text
+                    ):
+                        # Clear authentication state
+                        st.session_state.authenticated = False
+                        st.session_state.access_token = None
+                        st.session_state.user = None
+                        st.error("인증 토큰이 만료되었습니다. 다시 로그인해주세요.")
+                        st.switch_page("Main.py")
+                except:
+                    pass
+
             try:
                 error_detail = response.json()
                 return (
@@ -107,6 +132,21 @@ tab1, tab2 = st.tabs(["Upload", "List"])
 with tab1:
     st.header("📤 Document Upload & Embedding")
 
+    # Add clear button
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if st.button("🧹 Clear", key="clear_upload_form"):
+            # Clear all upload-related session state
+            keys_to_clear = [
+                "file_uploader",
+                "metadata_input",
+                "upload_collection_select",
+            ]
+            for key in keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+            st.rerun()
+
     collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
     selected_collection = st.selectbox(
         "Select Collection",
@@ -119,6 +159,7 @@ with tab1:
         "Choose files to upload",
         type=["pdf", "txt", "md", "docx"],
         accept_multiple_files=True,
+        key="file_uploader",
     )
 
     # Show uploaded files and auto-generate metadata
@@ -134,6 +175,7 @@ with tab1:
             "Metadata for files (JSON array, one object per file)",
             value=json.dumps(default_metadata, indent=2),
             height=200,
+            key="metadata_input",
         )
     else:
         metadata_input = st.text_area(
@@ -142,6 +184,7 @@ with tab1:
             + datetime.now().isoformat()
             + '"}]',
             height=100,
+            key="metadata_input",
         )
 
     if st.button("Upload and Embed Documents", type="primary"):
@@ -206,6 +249,13 @@ with tab1:
 
 with tab2:
     st.header("📋 View Documents")
+
+    # Add refresh button
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if st.button("🔄 Refresh", key="refresh_documents"):
+            st.session_state.list_tab_df = None
+            st.session_state.list_tab_collection_id = None
 
     collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
     selected_collection = st.selectbox(
@@ -291,6 +341,33 @@ with tab2:
     if st.session_state.list_tab_df is not None:
         if len(st.session_state.list_tab_df) > 0:
             st.success(f"Found {len(st.session_state.list_tab_df)} documents")
+
+            # Calculate and display source statistics
+            source_stats = (
+                st.session_state.list_tab_df.groupby("Source")
+                .agg(
+                    {
+                        "ID": "count",  # Count of chunks per source
+                        "Count": "mean",  # Average character count per source
+                    }
+                )
+                .round(0)
+                .astype(int)
+            )
+
+            source_stats.columns = ["Chunks", "Avg Characters"]
+            source_stats = source_stats.reset_index()
+
+            # Create markdown table
+            markdown_table = "| Source | Chunks | Avg Characters |\n"
+            markdown_table += "|--------|--------|----------------|\n"
+
+            for _, row in source_stats.iterrows():
+                markdown_table += f"| {row['Source']} | {row['Chunks']} | {row['Avg Characters']:,} |\n"
+
+            # Display the summary table
+            st.markdown("### 📊 Document Summary")
+            st.markdown(markdown_table)
 
             # Display dataframe with selection
             event = st.dataframe(

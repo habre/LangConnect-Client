@@ -65,6 +65,31 @@ def make_request(
             except:
                 return True, response.text
         else:
+            # Check for authentication errors (401 Unauthorized or token expiry)
+            if response.status_code == 401:
+                # Clear authentication state
+                st.session_state.authenticated = False
+                st.session_state.access_token = None
+                st.session_state.user = None
+                st.error("Your authentication token has expired. Please sign in again.")
+                st.switch_page("Main.py")
+
+            # Check for token expiry in 500 errors
+            elif response.status_code == 500:
+                try:
+                    error_text = response.text.lower()
+                    if "token" in error_text and (
+                        "expired" in error_text or "invalid" in error_text
+                    ):
+                        # Clear authentication state
+                        st.session_state.authenticated = False
+                        st.session_state.access_token = None
+                        st.session_state.user = None
+                        st.error("인증 토큰이 만료되었습니다. 다시 로그인해주세요.")
+                        st.switch_page("Main.py")
+                except:
+                    pass
+
             try:
                 error_detail = response.json()
                 return (
@@ -80,6 +105,67 @@ def make_request(
         )
     except Exception as e:
         return False, f"Request failed: {str(e)}"
+
+
+@st.dialog("삭제 확인")
+def confirm_delete_collections(selected_names, selected_uuids):
+    st.warning(
+        "⚠️ 정말로 선택한 컬렉션을 삭제하시겠습니까? **이 작업은 복구할 수 없습니다.**"
+    )
+
+    st.write(f"삭제할 컬렉션 ({len(selected_names)}개):")
+    for name in selected_names:
+        st.write(f"• {name}")
+
+    st.write("")
+    st.info("삭제된 컬렉션의 모든 문서도 함께 삭제됩니다.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("삭제", type="primary", use_container_width=True):
+            # Delete each selected collection
+            deleted_count = 0
+            failed_count = 0
+
+            progress_text = st.empty()
+            progress_bar = st.progress(0)
+
+            for i, (uuid, name) in enumerate(zip(selected_uuids, selected_names)):
+                progress_text.text(
+                    f"컬렉션 삭제 중 {i+1}/{len(selected_uuids)}: {name}..."
+                )
+                progress_bar.progress((i + 1) / len(selected_uuids))
+
+                success, result = make_request("DELETE", f"/collections/{uuid}")
+
+                if success:
+                    deleted_count += 1
+                else:
+                    failed_count += 1
+
+            progress_text.empty()
+            progress_bar.empty()
+
+            if deleted_count > 0:
+                st.success(
+                    f"✅ {deleted_count}개의 컬렉션이 성공적으로 삭제되었습니다."
+                )
+
+            if failed_count > 0:
+                st.error(f"❌ {failed_count}개의 컬렉션 삭제에 실패했습니다.")
+
+            # Clear session state to force refresh
+            st.session_state.collections_df = None
+            st.session_state.collections_stats = None
+            if "collections_list" in st.session_state:
+                del st.session_state["collections_list"]
+            st.session_state.delete_confirmed = True
+            time.sleep(1)
+            st.rerun()
+
+    with col2:
+        if st.button("취소", use_container_width=True):
+            st.rerun()
 
 
 # Check authentication
@@ -171,6 +257,10 @@ with tab1:
 
             if not success:
                 st.error(f"Failed to fetch collections: {collections}")
+                with st.expander("에러 상세 정보"):
+                    st.code(collections)
+                    st.info("API 서버가 실행 중인지 확인하세요.")
+                    st.info(f"API URL: {API_BASE_URL}")
                 st.stop()
 
             st.session_state["collections_list"] = collections
@@ -189,49 +279,49 @@ with tab1:
                             all_documents = []
                             offset = 0
                             limit = 100
-                            
+
                             while True:
                                 success, documents = make_request(
                                     "GET",
                                     f"/collections/{collection['uuid']}/documents",
-                                    data={"limit": limit, "offset": offset}
+                                    data={"limit": limit, "offset": offset},
                                 )
-                                
+
                                 if not success:
                                     break
-                                    
+
                                 if not documents:
                                     break
-                                    
+
                                 all_documents.extend(documents)
-                                
+
                                 # If we got less than the limit, we've reached the end
                                 if len(documents) < limit:
                                     break
-                                    
+
                                 offset += limit
-                            
+
                             if all_documents:
                                 total_chunks = len(all_documents)
-                                
+
                                 # Count unique documents by file_id
                                 unique_file_ids = set()
                                 for doc in all_documents:
                                     file_id = doc.get("metadata", {}).get("file_id")
                                     if file_id:
                                         unique_file_ids.add(file_id)
-                                
+
                                 total_documents = len(unique_file_ids)
-                                collection_stats[collection['uuid']] = {
+                                collection_stats[collection["uuid"]] = {
                                     "documents": total_documents,
-                                    "chunks": total_chunks
+                                    "chunks": total_chunks,
                                 }
                             else:
-                                collection_stats[collection['uuid']] = {
+                                collection_stats[collection["uuid"]] = {
                                     "documents": 0,
-                                    "chunks": 0
+                                    "chunks": 0,
                                 }
-                        
+
                         st.session_state.collections_stats = collection_stats
                 else:
                     collection_stats = st.session_state.collections_stats
@@ -239,23 +329,36 @@ with tab1:
                 # Create DataFrame for collections
                 df_data = []
                 for collection in collections:
-                    stats = collection_stats.get(collection['uuid'], {"documents": 0, "chunks": 0})
-                    df_data.append({
-                        "Name": collection['name'],
-                        "Documents": stats["documents"],
-                        "Chunks": stats["chunks"],
-                        "UUID": collection["uuid"],
-                        "Metadata": json.dumps(collection.get("metadata", {}), ensure_ascii=False) if collection.get("metadata") else "{}",
-                        "_uuid": collection["uuid"]  # Hidden column for operations
-                    })
-                
+                    stats = collection_stats.get(
+                        collection["uuid"], {"documents": 0, "chunks": 0}
+                    )
+                    df_data.append(
+                        {
+                            "Name": collection["name"],
+                            "Documents": stats["documents"],
+                            "Chunks": stats["chunks"],
+                            "UUID": collection["uuid"],
+                            "Metadata": (
+                                json.dumps(
+                                    collection.get("metadata", {}), ensure_ascii=False
+                                )
+                                if collection.get("metadata")
+                                else "{}"
+                            ),
+                            "_uuid": collection["uuid"],  # Hidden column for operations
+                        }
+                    )
+
                 df = pd.DataFrame(df_data)
                 st.session_state.collections_df = df
 
     # Display collections dataframe
-    if st.session_state.collections_df is not None and len(st.session_state.collections_df) > 0:
+    if (
+        st.session_state.collections_df is not None
+        and len(st.session_state.collections_df) > 0
+    ):
         st.write(f"**Total Collections:** {len(st.session_state.collections_df)}")
-        
+
         # Display selectable dataframe
         event = st.dataframe(
             st.session_state.collections_df[
@@ -286,52 +389,12 @@ with tab1:
                         selected_names = []
                         for idx in selected_indices:
                             if idx < len(st.session_state.collections_df):
-                                uuid = st.session_state.collections_df.iloc[idx]["_uuid"]
+                                uuid = st.session_state.collections_df.iloc[idx][
+                                    "_uuid"
+                                ]
                                 name = st.session_state.collections_df.iloc[idx]["Name"]
                                 selected_uuids.append(uuid)
                                 selected_names.append(name)
 
-                        # Delete each selected collection
-                        deleted_count = 0
-                        failed_count = 0
-
-                        progress_text = st.empty()
-                        progress_bar = st.progress(0)
-
-                        for i, (uuid, name) in enumerate(zip(selected_uuids, selected_names)):
-                            progress_text.text(
-                                f"Deleting collection {i+1} of {len(selected_uuids)}: {name}..."
-                            )
-                            progress_bar.progress((i + 1) / len(selected_uuids))
-
-                            success, result = make_request(
-                                "DELETE", f"/collections/{uuid}"
-                            )
-
-                            if success:
-                                deleted_count += 1
-                            else:
-                                failed_count += 1
-
-                        progress_text.empty()
-                        progress_bar.empty()
-
-                        if deleted_count > 0:
-                            st.success(
-                                f"✅ Successfully deleted {deleted_count} collection(s)"
-                            )
-
-                        if failed_count > 0:
-                            st.error(
-                                f"❌ Failed to delete {failed_count} collection(s)"
-                            )
-
-                        # Clear session state to force refresh
-                        st.session_state.collections_df = None
-                        st.session_state.collections_stats = None
-                        time.sleep(1)
-                        st.rerun()
-    elif st.session_state.collections_df is not None:
-        st.info("No collections found. Create one to get started!")
-
-
+                        # Show confirmation dialog
+                        confirm_delete_collections(selected_names, selected_uuids)

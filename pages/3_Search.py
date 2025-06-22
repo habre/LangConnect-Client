@@ -61,6 +61,31 @@ def make_request(
             except:
                 return True, response.text
         else:
+            # Check for authentication errors (401 Unauthorized or token expiry)
+            if response.status_code == 401:
+                # Clear authentication state
+                st.session_state.authenticated = False
+                st.session_state.access_token = None
+                st.session_state.user = None
+                st.error("Your authentication token has expired. Please sign in again.")
+                st.switch_page("Main.py")
+
+            # Check for token expiry in 500 errors
+            elif response.status_code == 500:
+                try:
+                    error_text = response.text.lower()
+                    if "token" in error_text and (
+                        "expired" in error_text or "invalid" in error_text
+                    ):
+                        # Clear authentication state
+                        st.session_state.authenticated = False
+                        st.session_state.access_token = None
+                        st.session_state.user = None
+                        st.error("인증 토큰이 만료되었습니다. 다시 로그인해주세요.")
+                        st.switch_page("Main.py")
+                except:
+                    pass
+
             try:
                 error_detail = response.json()
                 return (

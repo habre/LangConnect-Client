@@ -158,168 +158,11 @@ def make_request(
 # Collections tab has been moved to pages/1_Collections.py
 
 
-def api_tester_tab():
-    st.header("API Tester")
-
-    col1, col2 = st.columns([1, 2])
-
-    with col1:
-        endpoint_group = st.selectbox(
-            "Select Endpoint Group",
-            ["Health", "Collections", "Documents"],
-            key="api_endpoint_group",
-        )
-
-        if endpoint_group == "Health":
-            endpoint = st.selectbox("Endpoint", ["/health"], key="health_endpoint")
-            method = "GET"
-
-        elif endpoint_group == "Collections":
-            endpoint_options = {
-                "List Collections": ("GET", "/collections"),
-                "Create Collection": ("POST", "/collections"),
-                "Get Collection": ("GET", "/collections/{collection_id}"),
-                "Update Collection": ("PATCH", "/collections/{collection_id}"),
-                "Delete Collection": ("DELETE", "/collections/{collection_id}"),
-            }
-            selected = st.selectbox(
-                "Endpoint", list(endpoint_options.keys()), key="collections_endpoint"
-            )
-            method, endpoint = endpoint_options[selected]
-
-        elif endpoint_group == "Documents":
-            endpoint_options = {
-                "List Documents": ("GET", "/collections/{collection_id}/documents"),
-                "Create Documents": ("POST", "/collections/{collection_id}/documents"),
-                "Delete Document": (
-                    "DELETE",
-                    "/collections/{collection_id}/documents/{document_id}",
-                ),
-                "Search Documents": (
-                    "POST",
-                    "/collections/{collection_id}/documents/search",
-                ),
-            }
-            selected = st.selectbox(
-                "Endpoint", list(endpoint_options.keys()), key="documents_endpoint"
-            )
-            method, endpoint = endpoint_options[selected]
-
-        st.write(f"**Method:** {method}")
-        st.write(f"**Endpoint:** {endpoint}")
-
-    with col2:
-        st.subheader("Parameters")
-
-        if "{collection_id}" in endpoint:
-            collection_id = st.text_input("Collection ID (UUID)")
-            endpoint = endpoint.replace("{collection_id}", collection_id)
-
-        if "{document_id}" in endpoint:
-            document_id = st.text_input("Document ID")
-            endpoint = endpoint.replace("{document_id}", document_id)
-
-        request_data = None
-        files = None
-
-        if method in ["POST", "PATCH"]:
-            if "collections" in endpoint and method == "POST":
-                name = st.text_input("Collection Name")
-                metadata = st.text_area("Metadata (JSON)", "{}")
-                try:
-                    metadata_dict = json.loads(metadata) if metadata else {}
-                    request_data = {"name": name, "metadata": metadata_dict}
-                except json.JSONDecodeError:
-                    st.error("Invalid JSON in metadata")
-
-            elif "collections" in endpoint and method == "PATCH":
-                name = st.text_input("New Collection Name (optional)")
-                metadata = st.text_area("New Metadata (JSON, optional)", "{}")
-                try:
-                    request_data = {}
-                    if name:
-                        request_data["name"] = name
-                    if metadata:
-                        request_data["metadata"] = json.loads(metadata)
-                except json.JSONDecodeError:
-                    st.error("Invalid JSON in metadata")
-
-            elif "search" in endpoint:
-                query = st.text_input("Search Query")
-                limit = st.number_input("Limit", min_value=1, max_value=100, value=10)
-                search_type = st.selectbox(
-                    "Search Type",
-                    ["semantic", "keyword", "hybrid"],
-                    help="Semantic: Vector similarity search\nKeyword: Full-text search\nHybrid: Combination of both",
-                )
-                filter_json = st.text_area(
-                    "Filter (JSON, optional)",
-                    placeholder='{"source": "SPRi AI Brief_6월호.pdf"}\n\n# Other examples:\n{"file_id": "abc123"}\n{"source": "document.pdf", "type": "report"}',
-                    help="Enter a JSON object to filter results by metadata",
-                )
-                try:
-                    filter_dict = (
-                        json.loads(filter_json)
-                        if filter_json and filter_json != "{}"
-                        else None
-                    )
-                    request_data = {
-                        "query": query,
-                        "limit": limit,
-                        "search_type": search_type,
-                    }
-                    if filter_dict:
-                        request_data["filter"] = filter_dict
-                except json.JSONDecodeError:
-                    st.error("Invalid JSON in filter")
-
-        if st.button("Send Request", type="primary"):
-            if "{collection_id}" in endpoint and not collection_id:
-                st.error("Please provide Collection ID")
-            elif "{document_id}" in endpoint and not document_id:
-                st.error("Please provide Document ID")
-            elif (
-                endpoint_group == "Documents"
-                and "documents" in endpoint
-                and method == "POST"
-                and not "search" in endpoint
-            ):
-                st.info("Use the Document Upload tab for uploading documents")
-            else:
-                if (
-                    method == "GET"
-                    and endpoint_group == "Documents"
-                    and "documents" in endpoint
-                    and not "search" in endpoint
-                ):
-                    params = {}
-                    if "limit" in locals():
-                        params["limit"] = 10
-                    if "offset" in locals():
-                        params["offset"] = 0
-                    success, result = make_request(method, endpoint, data=params)
-                else:
-                    success, result = make_request(
-                        method, endpoint, json_data=request_data
-                    )
-
-                if success:
-                    st.success("Request successful!")
-                    if isinstance(result, (dict, list)):
-                        st.json(result)
-                    else:
-                        st.write(result)
-                else:
-                    st.error("Request failed")
-                    if isinstance(result, str):
-                        st.code(result)
-
+# API tester tab has been moved to pages/4_API_Tester.py
 
 # Document upload tab has been moved to pages/2_Documents.py
 
-
 # Vector search tab has been moved to pages/3_Search.py
-
 
 # Document management tab has been moved to pages/2_Documents.py
 
@@ -400,6 +243,87 @@ def main():
         return
 
     st.title("🔗 LangConnect Client")
+    
+    st.markdown("""
+    Welcome to **LangConnect** - A powerful document management and search system powered by LangChain and PostgreSQL.
+    
+    ## 🚀 Features
+    
+    This application provides a comprehensive interface for managing documents with advanced search capabilities:
+    """)
+    
+    # Page navigation
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### 📚 Collections Management")
+        st.markdown("""
+        - Create and manage document collections
+        - View collection statistics
+        - Bulk delete collections
+        """)
+        st.page_link("pages/1_Collections.py", label="Go to Collections", icon="📚")
+        
+        st.markdown("### 📄 Document Management")
+        st.markdown("""
+        - Upload multiple documents (PDF, TXT, MD, DOCX)
+        - View and manage document chunks
+        - Delete individual chunks or entire documents
+        """)
+        st.page_link("pages/2_Documents.py", label="Go to Documents", icon="📄")
+    
+    with col2:
+        st.markdown("### 🔍 Search")
+        st.markdown("""
+        - **Semantic Search**: AI-powered similarity search
+        - **Keyword Search**: Traditional full-text search
+        - **Hybrid Search**: Best of both approaches
+        - Advanced metadata filtering
+        """)
+        st.page_link("pages/3_Search.py", label="Go to Search", icon="🔍")
+        
+        st.markdown("### 🧪 API Tester")
+        st.markdown("""
+        - Test all API endpoints directly
+        - Explore the API functionality
+        - Debug and develop integrations
+        """)
+        st.page_link("pages/4_API_Tester.py", label="Go to API Tester", icon="🧪")
+    
+    st.divider()
+    
+    # Project information
+    st.markdown("## 📌 About This Project")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("""
+        **LangConnect** is an open-source project that combines the power of:
+        - 🦜 **LangChain** for document processing and embeddings
+        - 🐘 **PostgreSQL** with pgvector extension for vector storage
+        - ⚡ **FastAPI** for high-performance API backend
+        - 🎨 **Streamlit** for interactive user interface
+        
+        Perfect for building RAG (Retrieval-Augmented Generation) applications!
+        """)
+    
+    with col2:
+        st.markdown("### 🔗 Links")
+        st.markdown("""
+        - 📦 [GitHub Repository](https://github.com/teddynote-lab/langconnect)
+        - 👨‍💻 [TeddyNote LAB](https://github.com/teddynote-lab)
+        - 📚 [Documentation](https://github.com/teddynote-lab/langconnect#readme)
+        """)
+    
+    st.divider()
+    
+    # Footer
+    st.markdown("""
+    <div style='text-align: center; color: #666; padding: 20px;'>
+        Made with ❤️ by <a href='https://github.com/teddynote-lab' target='_blank'>TeddyNote LAB</a>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.sidebar:
         st.header("Configuration")
@@ -427,22 +351,6 @@ def main():
                     st.error("❌ Connection failed")
                     st.error(result)
 
-    # Welcome message
-    st.markdown("""
-    Welcome to **LangConnect Client**! 🔗
-    
-    Navigate to different features using the sidebar:
-    - **📚 Collections**: Create and manage collections
-    - **📄 Documents**: Upload, view, and manage documents
-    - **🔍 Search**: Perform vector searches across your documents
-    
-    The API Tester below allows you to directly interact with the LangConnect API.
-    """)
-    
-    st.divider()
-    
-    # Main content - API Tester
-    api_tester_tab()
 
 
 if __name__ == "__main__":

@@ -153,15 +153,24 @@ async def documents_delete(
     user: Annotated[AuthenticatedUser, Depends(resolve_user)],
     collection_id: UUID,
     document_id: str,
+    delete_by: str = Query("document_id", description="Delete by 'document_id' or 'file_id'"),
 ):
-    """Deletes a specific document from a collection by its ID."""
+    """Deletes a specific document from a collection by its ID.
+    
+    Args:
+        document_id: The ID to delete by (either document ID or file ID)
+        delete_by: Specifies whether to delete by 'document_id' (single chunk) or 'file_id' (all chunks from file)
+    """
     collection = Collection(
         collection_id=str(collection_id),
         user_id=user.identity,
     )
-    # TODO(Eugene): Deletion logic does not look correct.
-    #  Should I be deleting by ID or file ID?
-    success = await collection.delete(file_id=document_id)
+    
+    if delete_by == "file_id":
+        success = await collection.delete(file_id=document_id)
+    else:  # Default to document_id
+        success = await collection.delete(document_id=document_id)
+        
     if not success:
         raise HTTPException(status_code=404, detail="Failed to delete document.")
 

@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime
+import time
 
 load_dotenv()
 
@@ -101,7 +102,7 @@ if not collections:
     st.stop()
 
 # Create tabs
-tab1, tab2, tab3 = st.tabs(["Upload", "List", "Management"])
+tab1, tab2 = st.tabs(["Upload", "List"])
 
 with tab1:
     st.header("📤 Document Upload & Embedding")
@@ -214,8 +215,15 @@ with tab2:
     )
     collection_id = collection_options[selected_collection]
 
-    if st.button("Fetch Documents", type="primary"):
-        with st.spinner("Fetching all documents..."):
+    # Initialize session state for this tab
+    if "list_tab_df" not in st.session_state:
+        st.session_state.list_tab_df = None
+    if "list_tab_collection_id" not in st.session_state:
+        st.session_state.list_tab_collection_id = None
+
+    # Auto-fetch documents when collection changes
+    if st.session_state.list_tab_collection_id != collection_id:
+        with st.spinner("Loading documents..."):
             # Fetch all documents using pagination
             all_documents = []
             offset = 0
@@ -230,6 +238,7 @@ with tab2:
 
                 if not success:
                     st.error(f"Failed to fetch documents: {documents}")
+                    st.session_state.list_tab_df = None
                     break
 
                 if not documents:
@@ -245,215 +254,120 @@ with tab2:
 
             documents = all_documents
 
-        if success:
-            if documents:
-                st.success(f"Found {len(documents)} documents")
+            if success:
+                if documents:
+                    # Create DataFrame with full document data
+                    df_data = []
+                    for idx, doc in enumerate(documents):
+                        metadata = doc.get("metadata", {})
+                        content = doc.get("content", "")
+                        df_data.append(
+                            {
+                                "ID": doc.get("id", "N/A")[:8] + "...",
+                                "Content Preview": content,
+                                "Count": len(content),
+                                "Source": metadata.get("source", "N/A"),
+                                "File ID": metadata.get("file_id", "N/A"),
+                                "Timestamp": metadata.get("timestamp", "N/A"),
+                                "_full_id": doc.get(
+                                    "id", "N/A"
+                                ),  # Hidden column with full ID
+                                "_file_id": metadata.get(
+                                    "file_id", doc.get("id")
+                                ),  # Hidden column with file_id for deletion
+                            }
+                        )
 
-                # Create DataFrame
-                df_data = []
-                for doc in documents:
-                    metadata = doc.get("metadata", {})
-                    df_data.append(
-                        {
-                            "ID": doc.get("id", "N/A") + "...",
-                            "Content Preview": doc.get("content", "") + "...",
-                            "Source": metadata.get("source", "N/A"),
-                            "File ID": metadata.get("file_id", "N/A"),
-                            "Timestamp": metadata.get("timestamp", "N/A"),
-                        }
-                    )
+                    df = pd.DataFrame(df_data)
 
-                df = pd.DataFrame(df_data)
-                st.dataframe(df, use_container_width=True)
-            else:
-                st.info("No documents found in this collection")
-        else:
-            st.error(f"Failed to fetch documents: {documents}")
+                    # Store documents in session state for persistence
+                    st.session_state.list_tab_df = df
+                    st.session_state.list_tab_collection_id = collection_id
+                else:
+                    st.session_state.list_tab_df = pd.DataFrame()  # Empty DataFrame
+                    st.session_state.list_tab_collection_id = collection_id
 
-with tab3:
-    st.header("🔧 Document Management")
+    # Display dataframe
+    if st.session_state.list_tab_df is not None:
+        if len(st.session_state.list_tab_df) > 0:
+            st.success(f"Found {len(st.session_state.list_tab_df)} documents")
 
-    # Collection selector
-    collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
-    selected_collection = st.selectbox(
-        "Select Collection",
-        list(collection_options.keys()),
-        key="doc_mgmt_collection_select",
-    )
-    collection_id = collection_options[selected_collection]
-
-    # Fetch documents button
-    if st.button("Fetch Documents", type="primary", key="fetch_docs_button"):
-        with st.spinner("Fetching all documents..."):
-            # Fetch all documents using pagination
-            all_documents = []
-            offset = 0
-            limit = 100
-
-            while True:
-                success, documents = make_request(
-                    "GET",
-                    f"/collections/{collection_id}/documents",
-                    data={"limit": limit, "offset": offset},
-                )
-
-                if not success:
-                    st.error(f"Failed to fetch documents: {documents}")
-                    break
-
-                if not documents:
-                    break
-
-                all_documents.extend(documents)
-
-                # If we got less than the limit, we've reached the end
-                if len(documents) < limit:
-                    break
-
-                offset += limit
-
-            documents = all_documents
-
-        if success:
-            if documents:
-                st.session_state["doc_mgmt_documents"] = documents
-                st.session_state["doc_mgmt_collection_id"] = collection_id
-            else:
-                st.info("No documents found in this collection")
-                if "doc_mgmt_documents" in st.session_state:
-                    del st.session_state["doc_mgmt_documents"]
-
-    # Display documents if they exist in session state
-    if (
-        "doc_mgmt_documents" in st.session_state
-        and st.session_state.get("doc_mgmt_collection_id") == collection_id
-    ):
-        documents = st.session_state["doc_mgmt_documents"]
-
-        st.divider()
-        st.subheader(f"Documents in Collection ({len(documents)} items)")
-
-        # Prepare data for display
-        display_data = []
-        for idx, doc in enumerate(documents):
-            metadata = doc.get("metadata", {})
-            row_data = {
-                "index": idx + 1,
-                "source": metadata.get("source", "N/A"),
-                "file_id": metadata.get("file_id", "N/A"),
-                "timestamp": metadata.get("timestamp", "N/A"),
-                "document_id": doc.get("id", "N/A"),
-                "metadata": (
-                    json.dumps(metadata, ensure_ascii=False) if metadata else "{}"
-                ),
-            }
-
-            display_data.append(row_data)
-
-        # Display as dataframe
-        if display_data:
-            df = pd.DataFrame(display_data)
-
-            # Configure column order and display
-            column_order = [
-                "index",
-                "source",
-                "file_id",
-                "document_id",
-                "timestamp",
-                "metadata",
-            ]
-            df = df[column_order]
-
-            # Show the dataframe with custom column config
-            st.dataframe(
-                df,
+            # Display dataframe with selection
+            event = st.dataframe(
+                st.session_state.list_tab_df[
+                    ["ID", "Content Preview", "Count", "Source", "Timestamp", "File ID"]
+                ],  # Show only visible columns
                 use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "index": st.column_config.NumberColumn("Index", width="small"),
-                    "source": st.column_config.TextColumn("Source", width="medium"),
-                    "file_id": st.column_config.TextColumn("File ID", width="medium"),
-                    "document_id": st.column_config.TextColumn(
-                        "Document ID", width="medium"
-                    ),
-                    "timestamp": st.column_config.TextColumn(
-                        "Timestamp", width="medium"
-                    ),
-                    "metadata": st.column_config.TextColumn(
-                        "Metadata (JSON)", width="large"
-                    ),
-                },
+                on_select="rerun",
+                selection_mode="multi-row",
+                key="doc_list_df",
             )
 
-            st.divider()
+            # Process selection
+            if event.selection:
+                selected_indices = event.selection.rows
+                if len(selected_indices) > 0:
+                    st.write(f"**Selected {len(selected_indices)} document(s)**")
 
-            # Document actions section
-            st.subheader("Document Actions")
+                    # Show delete button
+                    col1, col2 = st.columns([1, 5])
+                    with col1:
+                        if st.button(
+                            "🗑️ Delete Selected",
+                            type="secondary",
+                            key="delete_selected_list",
+                        ):
+                            # Get document IDs of selected documents
+                            selected_doc_ids = []
+                            for idx in selected_indices:
+                                if idx < len(st.session_state.list_tab_df):
+                                    doc_id = st.session_state.list_tab_df.iloc[idx][
+                                        "_full_id"
+                                    ]
+                                    selected_doc_ids.append(doc_id)
 
-            # Group documents by source for better organization
-            sources = {}
-            for idx, doc in enumerate(documents):
-                source = doc.get("metadata", {}).get("source", "Unknown")
-                if source not in sources:
-                    sources[source] = []
-                sources[source].append((idx, doc))
+                            # Delete each selected document
+                            deleted_count = 0
+                            failed_count = 0
 
-            # Display documents grouped by source
-            for source, doc_list in sources.items():
-                with st.expander(f"📄 {source} ({len(doc_list)} chunks)"):
-                    for idx, doc in doc_list:
-                        col1, col2 = st.columns([8, 2])
+                            progress_text = st.empty()
+                            progress_bar = st.progress(0)
 
-                        with col1:
-                            st.write(f"**Chunk {idx + 1}**")
-                            metadata = doc.get("metadata", {})
+                            for i, doc_id in enumerate(selected_doc_ids):
+                                progress_text.text(
+                                    f"Deleting document {i+1} of {len(selected_doc_ids)}..."
+                                )
+                                progress_bar.progress((i + 1) / len(selected_doc_ids))
 
-                            # Display key metadata
-                            meta_cols = st.columns(3)
-                            with meta_cols[0]:
-                                st.caption(f"File ID: {metadata.get('file_id', 'N/A')}")
-                            with meta_cols[1]:
-                                st.caption(f"Doc ID: {doc.get('id', 'N/A')[:8]}...")
-                            with meta_cols[2]:
-                                if "timestamp" in metadata:
-                                    try:
-                                        ts = datetime.fromisoformat(
-                                            metadata["timestamp"].replace("Z", "+00:00")
-                                        )
-                                        st.caption(
-                                            f"Time: {ts.strftime('%Y-%m-%d %H:%M')}"
-                                        )
-                                    except:
-                                        st.caption(f"Time: {metadata['timestamp']}")
-
-                        with col2:
-                            # Delete button
-                            if st.button(
-                                "🗑️ Delete", key=f"delete_{doc['id']}", type="secondary"
-                            ):
-                                # Get file_id from metadata if available
-                                file_id = metadata.get("file_id", doc.get("id"))
-
-                                with st.spinner("Deleting document..."):
-                                    success, result = make_request(
-                                        "DELETE",
-                                        f"/collections/{collection_id}/documents/{file_id}",
-                                    )
+                                success, result = make_request(
+                                    "DELETE",
+                                    f"/collections/{collection_id}/documents/{doc_id}?delete_by=document_id",
+                                )
 
                                 if success:
-                                    st.success("Document deleted successfully!")
-                                    # Clear the cached documents to force refresh
-                                    if "doc_mgmt_documents" in st.session_state:
-                                        del st.session_state["doc_mgmt_documents"]
-                                    # Refresh the page
-                                    st.rerun()
+                                    deleted_count += 1
                                 else:
-                                    st.error(f"Failed to delete document: {result}")
+                                    failed_count += 1
 
-        # Refresh button at the bottom
-        if st.button("🔄 Refresh Document List", key="refresh_docs"):
-            # Clear the cached documents to force a fresh fetch
-            if "doc_mgmt_documents" in st.session_state:
-                del st.session_state["doc_mgmt_documents"]
-            st.rerun()
+                            progress_text.empty()
+                            progress_bar.empty()
+
+                            if deleted_count > 0:
+                                st.success(
+                                    f"✅ Successfully deleted {deleted_count} document(s)"
+                                )
+
+                            if failed_count > 0:
+                                st.error(
+                                    f"❌ Failed to delete {failed_count} document(s)"
+                                )
+
+                            # Clear session state to force refresh
+                            st.session_state.list_tab_df = None
+                            st.session_state.list_tab_collection_id = (
+                                None  # Force re-fetch
+                            )
+                            time.sleep(1)
+                            st.rerun()
+        else:
+            st.info("No documents found in this collection")

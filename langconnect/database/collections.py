@@ -293,30 +293,53 @@ class Collection:
         self,
         *,
         file_id: Optional[str] = None,
+        document_id: Optional[str] = None,
     ) -> bool:
-        """Delete embeddings by file id.
+        """Delete embeddings by file id or individual document id.
 
-        A file id identifies the original file from which the chunks were generated.
+        Args:
+            file_id: Deletes all chunks from a specific file
+            document_id: Deletes a specific chunk/document
         """
         async with get_db_connection() as conn:
-            delete_sql = """
-                DELETE FROM langchain_pg_embedding AS lpe
-                USING langchain_pg_collection AS lpc
-                WHERE lpe.collection_id   = lpc.uuid
-                  AND lpc.uuid             = $1
-                  AND lpc.cmetadata->>'owner_id' = $2
-                  AND lpe.cmetadata->>'file_id'   = $3
-            """
-            # Params: collection UUID, user ID, file ID
-            result = await conn.execute(
-                delete_sql,
-                self.collection_id,
-                self.user_id,
-                file_id,
-            )
-            # result is like "DELETE 3"
-            deleted_count = int(result.split()[-1])
-            logger.info(f"Deleted {deleted_count} embeddings for file {file_id!r}.")
+            if document_id:
+                # Delete specific document by ID
+                delete_sql = """
+                    DELETE FROM langchain_pg_embedding AS lpe
+                    USING langchain_pg_collection AS lpc
+                    WHERE lpe.collection_id = lpc.uuid
+                      AND lpc.uuid = $1
+                      AND lpc.cmetadata->>'owner_id' = $2
+                      AND lpe.id = $3
+                """
+                result = await conn.execute(
+                    delete_sql,
+                    self.collection_id,
+                    self.user_id,
+                    document_id,
+                )
+                deleted_count = int(result.split()[-1])
+                logger.info(f"Deleted {deleted_count} document with id {document_id!r}.")
+            elif file_id:
+                # Delete all documents from a file
+                delete_sql = """
+                    DELETE FROM langchain_pg_embedding AS lpe
+                    USING langchain_pg_collection AS lpc
+                    WHERE lpe.collection_id   = lpc.uuid
+                      AND lpc.uuid             = $1
+                      AND lpc.cmetadata->>'owner_id' = $2
+                      AND lpe.cmetadata->>'file_id'   = $3
+                """
+                result = await conn.execute(
+                    delete_sql,
+                    self.collection_id,
+                    self.user_id,
+                    file_id,
+                )
+                deleted_count = int(result.split()[-1])
+                logger.info(f"Deleted {deleted_count} embeddings for file {file_id!r}.")
+            else:
+                raise ValueError("Either file_id or document_id must be provided")
 
             # For now if deleted count is 0, let's verify that the collection exists.
             if deleted_count == 0:

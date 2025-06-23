@@ -11,20 +11,31 @@ LangConnect-Client is a comprehensive RAG (Retrieval-Augmented Generation) clien
 
 ### 📚 Collections Management
 <div align="center">
-  <img src="./assets/collections.png" alt="Collections Management Interface" width="90%">
-  <p><em>Create and organize document collections with metadata support. View statistics and manage multiple collections effortlessly.</em></p>
+  <img src="./assets/collections-list.png" alt="Collections Management Interface" width="90%">
+  <p><em>Manage your collections with instant deletion capabilities. Create and organize document collections with metadata support and view detailed statistics.</em></p>
 </div>
 
 ### 📄 Document Management
 <div align="center">
-  <img src="./assets/document-management.png" alt="Document Management Interface" width="90%">
-  <p><em>Upload multiple documents in various formats (PDF, TXT, MD, DOCX) and manage document chunks with detailed previews.</em></p>
+  <img src="./assets/document-list.png" alt="Document List Interface" width="90%">
+  <p><em>View and manage your documents with an intuitive interface. See document-level statistics including chunk counts and total characters, with multi-select deletion capabilities.</em></p>
+</div>
+
+<div align="center">
+  <img src="./assets/document-upload.png" alt="Document Upload Interface" width="90%">
+  <p><em>Upload multiple documents in various formats (PDF, TXT, MD, DOCX) with automatic metadata generation and customization options.</em></p>
 </div>
 
 ### 🔍 Vector Search
 <div align="center">
   <img src="./assets/vector-search.png" alt="Vector Search Interface" width="90%">
-  <p><em>Perform semantic, keyword, or hybrid searches with metadata filtering. Get relevance-scored results instantly.</em></p>
+  <p><em>Perform advanced searches with multiple search types (semantic, keyword, hybrid). Filter by metadata and view results with relevance scores and source information.</em></p>
+</div>
+
+### 🔬 Chunk Investigation
+<div align="center">
+  <img src="./assets/chunk-investigation.png" alt="Chunk Investigation Interface" width="90%">
+  <p><em>Deep dive into document chunks with powerful filtering capabilities. View detailed chunk information including content previews, character counts, and metadata.</em></p>
 </div>
 
 ## 📋 Table of Contents
@@ -284,10 +295,14 @@ The Streamlit application provides a user-friendly web interface for interacting
      - Automatic metadata generation
      - Custom metadata support
    - **List Tab**:
-     - View all documents with chunk preview
-     - Source statistics summary
-     - Multi-select for deletion
+     - Document-level view grouped by file_id
+     - Total character and chunk counts per document
+     - Multi-select deletion by file_id
+   - **Chunk Tab**:
+     - Individual chunk viewing with content preview
+     - Multi-select source filtering
      - Character count display
+     - Chunk-level deletion
 
 4. **Search Page** (`pages/3_Search.py`)
    - Collection selection

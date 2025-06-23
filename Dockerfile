@@ -9,6 +9,12 @@ RUN apt-get update && \
     python3-dev \
     libpq-dev \
     curl \
+    libxml2-dev \
+    libxslt1-dev \
+    libmagic-dev \
+    poppler-utils \
+    tesseract-ocr \
+    pandoc \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv using pip
@@ -23,8 +29,8 @@ COPY . .
 # Install Python dependencies using uv
 RUN uv sync --frozen
 
-# Install additional dependencies
-RUN pip install streamlit
+# Install additional dependencies with docx support
+RUN uv pip install streamlit "unstructured[docx]"
 
 # Expose ports for both API and Streamlit
 # Note: The actual Streamlit port can be customized via STREAMLIT_PORT env var

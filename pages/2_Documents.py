@@ -127,7 +127,7 @@ if not collections:
     st.stop()
 
 # Create tabs
-tab1, tab2 = st.tabs(["Upload", "List"])
+tab1, tab2, tab3 = st.tabs(["Upload", "List", "Chunk"])
 
 with tab1:
     st.header("📤 Document Upload & Embedding")
@@ -248,14 +248,14 @@ with tab1:
                 st.error(f"Error: {str(e)}")
 
 with tab2:
-    st.header("📋 View Documents")
+    st.header("📋 Document List")
 
     # Add refresh button
     col1, col2 = st.columns([1, 5])
     with col1:
         if st.button("🔄 Refresh", key="refresh_documents"):
-            st.session_state.list_tab_df = None
-            st.session_state.list_tab_collection_id = None
+            st.session_state.doc_list_df = None
+            st.session_state.doc_list_collection_id = None
 
     collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
     selected_collection = st.selectbox(
@@ -266,13 +266,13 @@ with tab2:
     collection_id = collection_options[selected_collection]
 
     # Initialize session state for this tab
-    if "list_tab_df" not in st.session_state:
-        st.session_state.list_tab_df = None
-    if "list_tab_collection_id" not in st.session_state:
-        st.session_state.list_tab_collection_id = None
+    if "doc_list_df" not in st.session_state:
+        st.session_state.doc_list_df = None
+    if "doc_list_collection_id" not in st.session_state:
+        st.session_state.doc_list_collection_id = None
 
     # Auto-fetch documents when collection changes
-    if st.session_state.list_tab_collection_id != collection_id:
+    if st.session_state.doc_list_collection_id != collection_id:
         with st.spinner("Loading documents..."):
             # Fetch all documents using pagination
             all_documents = []
@@ -288,7 +288,7 @@ with tab2:
 
                 if not success:
                     st.error(f"Failed to fetch documents: {documents}")
-                    st.session_state.list_tab_df = None
+                    st.session_state.doc_list_df = None
                     break
 
                 if not documents:
@@ -306,78 +306,61 @@ with tab2:
 
             if success:
                 if documents:
-                    # Create DataFrame with full document data
-                    df_data = []
-                    for idx, doc in enumerate(documents):
+                    # Group documents by source/file_id
+                    source_docs = {}
+                    for doc in documents:
                         metadata = doc.get("metadata", {})
-                        content = doc.get("content", "")
-                        df_data.append(
-                            {
-                                "ID": doc.get("id", "N/A")[:8] + "...",
-                                "Content Preview": content,
-                                "Count": len(content),
-                                "Source": metadata.get("source", "N/A"),
-                                "File ID": metadata.get("file_id", "N/A"),
-                                "Timestamp": metadata.get("timestamp", "N/A"),
-                                "_full_id": doc.get(
-                                    "id", "N/A"
-                                ),  # Hidden column with full ID
-                                "_file_id": metadata.get(
-                                    "file_id", doc.get("id")
-                                ),  # Hidden column with file_id for deletion
+                        file_id = metadata.get("file_id", "N/A")
+                        source = metadata.get("source", "N/A")
+                        
+                        if file_id not in source_docs:
+                            source_docs[file_id] = {
+                                "source": source,
+                                "file_id": file_id,
+                                "chunks": [],
+                                "timestamp": metadata.get("timestamp", "N/A"),
+                                "total_chars": 0
                             }
-                        )
-
+                        
+                        content = doc.get("content", "")
+                        source_docs[file_id]["chunks"].append(doc)
+                        source_docs[file_id]["total_chars"] += len(content)
+                    
+                    # Create DataFrame with document-level data
+                    df_data = []
+                    for file_id, doc_info in source_docs.items():
+                        df_data.append({
+                            "Source": doc_info["source"],
+                            "File ID": file_id[:8] + "..." if file_id != "N/A" else "N/A",
+                            "Chunks": len(doc_info["chunks"]),
+                            "Total Characters": doc_info["total_chars"],
+                            "Timestamp": doc_info["timestamp"],
+                            "_file_id": file_id  # Hidden column for deletion
+                        })
+                    
                     df = pd.DataFrame(df_data)
-
+                    
                     # Store documents in session state for persistence
-                    st.session_state.list_tab_df = df
-                    st.session_state.list_tab_collection_id = collection_id
+                    st.session_state.doc_list_df = df
+                    st.session_state.doc_list_collection_id = collection_id
                 else:
-                    st.session_state.list_tab_df = pd.DataFrame()  # Empty DataFrame
-                    st.session_state.list_tab_collection_id = collection_id
+                    st.session_state.doc_list_df = pd.DataFrame()  # Empty DataFrame
+                    st.session_state.doc_list_collection_id = collection_id
 
     # Display dataframe
-    if st.session_state.list_tab_df is not None:
-        if len(st.session_state.list_tab_df) > 0:
-            st.success(f"Found {len(st.session_state.list_tab_df)} documents")
-
-            # Calculate and display source statistics
-            source_stats = (
-                st.session_state.list_tab_df.groupby("Source")
-                .agg(
-                    {
-                        "ID": "count",  # Count of chunks per source
-                        "Count": "mean",  # Average character count per source
-                    }
-                )
-                .round(0)
-                .astype(int)
-            )
-
-            source_stats.columns = ["Chunks", "Avg Characters"]
-            source_stats = source_stats.reset_index()
-
-            # Create markdown table
-            markdown_table = "| Source | Chunks | Avg Characters |\n"
-            markdown_table += "|--------|--------|----------------|\n"
-
-            for _, row in source_stats.iterrows():
-                markdown_table += f"| {row['Source']} | {row['Chunks']} | {row['Avg Characters']:,} |\n"
-
-            # Display the summary table
-            st.markdown("### 📊 Document Summary")
-            st.markdown(markdown_table)
+    if st.session_state.doc_list_df is not None:
+        if len(st.session_state.doc_list_df) > 0:
+            st.success(f"Found {len(st.session_state.doc_list_df)} documents")
 
             # Display dataframe with selection
             event = st.dataframe(
-                st.session_state.list_tab_df[
-                    ["ID", "Content Preview", "Count", "Source", "Timestamp", "File ID"]
+                st.session_state.doc_list_df[
+                    ["Source", "File ID", "Chunks", "Total Characters", "Timestamp"]
                 ],  # Show only visible columns
                 use_container_width=True,
                 on_select="rerun",
                 selection_mode="multi-row",
-                key="doc_list_df",
+                key="doc_source_df",
             )
 
             # Process selection
@@ -392,33 +375,31 @@ with tab2:
                         if st.button(
                             "🗑️ Delete Selected",
                             type="secondary",
-                            key="delete_selected_list",
+                            key="delete_selected_docs",
                         ):
-                            # Get document IDs of selected documents
-                            selected_doc_ids = []
+                            # Get file IDs of selected documents
+                            selected_file_ids = []
                             for idx in selected_indices:
-                                if idx < len(st.session_state.list_tab_df):
-                                    doc_id = st.session_state.list_tab_df.iloc[idx][
-                                        "_full_id"
-                                    ]
-                                    selected_doc_ids.append(doc_id)
+                                if idx < len(st.session_state.doc_list_df):
+                                    file_id = st.session_state.doc_list_df.iloc[idx]["_file_id"]
+                                    selected_file_ids.append(file_id)
 
-                            # Delete each selected document
+                            # Delete all chunks for each file_id
                             deleted_count = 0
                             failed_count = 0
 
                             progress_text = st.empty()
                             progress_bar = st.progress(0)
 
-                            for i, doc_id in enumerate(selected_doc_ids):
+                            for i, file_id in enumerate(selected_file_ids):
                                 progress_text.text(
-                                    f"Deleting document {i+1} of {len(selected_doc_ids)}..."
+                                    f"Deleting document {i+1} of {len(selected_file_ids)}..."
                                 )
-                                progress_bar.progress((i + 1) / len(selected_doc_ids))
+                                progress_bar.progress((i + 1) / len(selected_file_ids))
 
                                 success, result = make_request(
                                     "DELETE",
-                                    f"/collections/{collection_id}/documents/{doc_id}?delete_by=document_id",
+                                    f"/collections/{collection_id}/documents/{file_id}?delete_by=file_id",
                                 )
 
                                 if success:
@@ -440,11 +421,204 @@ with tab2:
                                 )
 
                             # Clear session state to force refresh
-                            st.session_state.list_tab_df = None
-                            st.session_state.list_tab_collection_id = (
-                                None  # Force re-fetch
-                            )
+                            st.session_state.doc_list_df = None
+                            st.session_state.doc_list_collection_id = None  # Force re-fetch
                             time.sleep(1)
                             st.rerun()
         else:
             st.info("No documents found in this collection")
+
+with tab3:
+    st.header("📄 View Chunks")
+
+    # Add refresh button
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if st.button("🔄 Refresh", key="refresh_chunks"):
+            st.session_state.chunk_tab_df = None
+            st.session_state.chunk_tab_collection_id = None
+
+    collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
+    selected_collection = st.selectbox(
+        "Select Collection",
+        list(collection_options.keys()),
+        key="chunk_collection_select",
+    )
+    collection_id = collection_options[selected_collection]
+
+    # Initialize session state for this tab
+    if "chunk_tab_df" not in st.session_state:
+        st.session_state.chunk_tab_df = None
+    if "chunk_tab_collection_id" not in st.session_state:
+        st.session_state.chunk_tab_collection_id = None
+    if "chunk_tab_all_sources" not in st.session_state:
+        st.session_state.chunk_tab_all_sources = []
+
+    # Auto-fetch documents when collection changes
+    if st.session_state.chunk_tab_collection_id != collection_id:
+        with st.spinner("Loading chunks..."):
+            # Fetch all documents using pagination
+            all_documents = []
+            offset = 0
+            limit = 100
+
+            while True:
+                success, documents = make_request(
+                    "GET",
+                    f"/collections/{collection_id}/documents",
+                    data={"limit": limit, "offset": offset},
+                )
+
+                if not success:
+                    st.error(f"Failed to fetch documents: {documents}")
+                    st.session_state.chunk_tab_df = None
+                    break
+
+                if not documents:
+                    break
+
+                all_documents.extend(documents)
+
+                # If we got less than the limit, we've reached the end
+                if len(documents) < limit:
+                    break
+
+                offset += limit
+
+            documents = all_documents
+
+            if success:
+                if documents:
+                    # Create DataFrame with full document data
+                    df_data = []
+                    all_sources = set()
+                    for idx, doc in enumerate(documents):
+                        metadata = doc.get("metadata", {})
+                        content = doc.get("content", "")
+                        source = metadata.get("source", "N/A")
+                        all_sources.add(source)
+                        
+                        df_data.append(
+                            {
+                                "ID": doc.get("id", "N/A")[:8] + "...",
+                                "Content Preview": content,
+                                "Count": len(content),
+                                "Source": source,
+                                "File ID": metadata.get("file_id", "N/A"),
+                                "Timestamp": metadata.get("timestamp", "N/A"),
+                                "_full_id": doc.get(
+                                    "id", "N/A"
+                                ),  # Hidden column with full ID
+                                "_file_id": metadata.get(
+                                    "file_id", doc.get("id")
+                                ),  # Hidden column with file_id for deletion
+                            }
+                        )
+
+                    df = pd.DataFrame(df_data)
+
+                    # Store documents in session state for persistence
+                    st.session_state.chunk_tab_df = df
+                    st.session_state.chunk_tab_collection_id = collection_id
+                    st.session_state.chunk_tab_all_sources = sorted(list(all_sources))
+                else:
+                    st.session_state.chunk_tab_df = pd.DataFrame()  # Empty DataFrame
+                    st.session_state.chunk_tab_collection_id = collection_id
+                    st.session_state.chunk_tab_all_sources = []
+
+    # Display dataframe
+    if st.session_state.chunk_tab_df is not None:
+        if len(st.session_state.chunk_tab_df) > 0:
+            # Add source filter
+            selected_sources = st.multiselect(
+                "Filter by Source",
+                st.session_state.chunk_tab_all_sources,
+                default=st.session_state.chunk_tab_all_sources,
+                key="source_filter"
+            )
+            
+            # Filter dataframe based on selected sources
+            if selected_sources:
+                filtered_df = st.session_state.chunk_tab_df[
+                    st.session_state.chunk_tab_df["Source"].isin(selected_sources)
+                ]
+            else:
+                filtered_df = st.session_state.chunk_tab_df
+            
+            st.success(f"Showing {len(filtered_df)} of {len(st.session_state.chunk_tab_df)} chunks")
+
+            # Display dataframe with selection
+            event = st.dataframe(
+                filtered_df[
+                    ["ID", "Content Preview", "Count", "Source", "Timestamp", "File ID"]
+                ],  # Show only visible columns
+                use_container_width=True,
+                on_select="rerun",
+                selection_mode="multi-row",
+                key="chunk_list_df",
+            )
+
+            # Process selection
+            if event.selection:
+                selected_indices = event.selection.rows
+                if len(selected_indices) > 0:
+                    st.write(f"**Selected {len(selected_indices)} chunk(s)**")
+
+                    # Show delete button
+                    col1, col2 = st.columns([1, 5])
+                    with col1:
+                        if st.button(
+                            "🗑️ Delete Selected",
+                            type="secondary",
+                            key="delete_selected_chunks",
+                        ):
+                            # Get document IDs of selected chunks
+                            selected_doc_ids = []
+                            for idx in selected_indices:
+                                if idx < len(filtered_df):
+                                    doc_id = filtered_df.iloc[idx]["_full_id"]
+                                    selected_doc_ids.append(doc_id)
+
+                            # Delete each selected chunk
+                            deleted_count = 0
+                            failed_count = 0
+
+                            progress_text = st.empty()
+                            progress_bar = st.progress(0)
+
+                            for i, doc_id in enumerate(selected_doc_ids):
+                                progress_text.text(
+                                    f"Deleting chunk {i+1} of {len(selected_doc_ids)}..."
+                                )
+                                progress_bar.progress((i + 1) / len(selected_doc_ids))
+
+                                success, result = make_request(
+                                    "DELETE",
+                                    f"/collections/{collection_id}/documents/{doc_id}?delete_by=document_id",
+                                )
+
+                                if success:
+                                    deleted_count += 1
+                                else:
+                                    failed_count += 1
+
+                            progress_text.empty()
+                            progress_bar.empty()
+
+                            if deleted_count > 0:
+                                st.success(
+                                    f"✅ Successfully deleted {deleted_count} chunk(s)"
+                                )
+
+                            if failed_count > 0:
+                                st.error(
+                                    f"❌ Failed to delete {failed_count} chunk(s)"
+                                )
+
+                            # Clear session state to force refresh
+                            st.session_state.chunk_tab_df = None
+                            st.session_state.chunk_tab_collection_id = None  # Force re-fetch
+                            time.sleep(1)
+                            st.rerun()
+        else:
+            st.info("No chunks found in this collection")

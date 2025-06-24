@@ -1,6 +1,8 @@
 .vs/
 .vscode/
 .idea/
+CLAUDE.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -127,127 +127,9 @@ if not collections:
     st.stop()
 
 # Create tabs
-tab1, tab2, tab3 = st.tabs(["Upload", "List", "Chunk"])
+tab1, tab2, tab3 = st.tabs(["List", "Chunk", "Upload"])
 
 with tab1:
-    st.header("📤 Document Upload & Embedding")
-
-    # Add clear button
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        if st.button("🧹 Clear", key="clear_upload_form"):
-            # Clear all upload-related session state
-            keys_to_clear = [
-                "file_uploader",
-                "metadata_input",
-                "upload_collection_select",
-            ]
-            for key in keys_to_clear:
-                if key in st.session_state:
-                    del st.session_state[key]
-            st.rerun()
-
-    collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
-    selected_collection = st.selectbox(
-        "Select Collection",
-        list(collection_options.keys()),
-        key="upload_collection_select",
-    )
-    collection_id = collection_options[selected_collection]
-
-    uploaded_files = st.file_uploader(
-        "Choose files to upload",
-        type=["pdf", "txt", "md", "docx"],
-        accept_multiple_files=True,
-        key="file_uploader",
-    )
-
-    # Show uploaded files and auto-generate metadata
-    if uploaded_files:
-        st.write(f"**Selected {len(uploaded_files)} file(s):**")
-        default_metadata = []
-        for file in uploaded_files:
-            default_metadata.append(
-                {"source": file.name, "timestamp": datetime.now().isoformat()}
-            )
-
-        metadata_input = st.text_area(
-            "Metadata for files (JSON array, one object per file)",
-            value=json.dumps(default_metadata, indent=2),
-            height=200,
-            key="metadata_input",
-        )
-    else:
-        metadata_input = st.text_area(
-            "Metadata for files (JSON array, one object per file)",
-            value='[{"source": "filename.pdf", "timestamp": "'
-            + datetime.now().isoformat()
-            + '"}]',
-            height=100,
-            key="metadata_input",
-        )
-
-    if st.button("Upload and Embed Documents", type="primary"):
-        if not uploaded_files:
-            st.warning("Please select files to upload")
-        else:
-            try:
-                metadata_list = json.loads(metadata_input) if metadata_input else []
-
-                # Ensure metadata list matches number of files
-                if len(metadata_list) < len(uploaded_files):
-                    # Add default metadata for missing files
-                    for i in range(len(metadata_list), len(uploaded_files)):
-                        metadata_list.append(
-                            {
-                                "source": uploaded_files[i].name,
-                                "timestamp": datetime.now().isoformat(),
-                            }
-                        )
-                elif len(metadata_list) > len(uploaded_files):
-                    # Trim excess metadata
-                    metadata_list = metadata_list[: len(uploaded_files)]
-
-                files_data = []
-                for i, file in enumerate(uploaded_files):
-                    file_content = file.read()
-                    files_data.append(
-                        (
-                            "files",
-                            (
-                                file.name,
-                                file_content,
-                                file.type or "application/octet-stream",
-                            ),
-                        )
-                    )
-
-                data = {}
-                if metadata_list:
-                    data["metadatas_json"] = json.dumps(metadata_list)
-
-                with st.spinner("Uploading and embedding documents..."):
-                    success, result = make_request(
-                        "POST",
-                        f"/collections/{collection_id}/documents",
-                        data=data,
-                        files=files_data,
-                    )
-
-                if success:
-                    st.success("Documents uploaded and embedded successfully!")
-                    st.json(result)
-                else:
-                    st.error("Upload failed")
-                    if isinstance(result, str):
-                        st.code(result)
-
-            except json.JSONDecodeError:
-                st.error("Invalid JSON in metadata")
-            except Exception as e:
-                st.error(f"Error: {str(e)}")
-
-with tab2:
     st.header("📋 Document List")
 
     # Add refresh button
@@ -428,7 +310,7 @@ with tab2:
         else:
             st.info("No documents found in this collection")
 
-with tab3:
+with tab2:
     st.header("📄 View Chunks")
 
     # Add refresh button
@@ -622,3 +504,121 @@ with tab3:
                             st.rerun()
         else:
             st.info("No chunks found in this collection")
+
+with tab3:
+    st.header("📤 Document Upload & Embedding")
+
+    # Add clear button
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if st.button("🧹 Clear", key="clear_upload_form"):
+            # Clear all upload-related session state
+            keys_to_clear = [
+                "file_uploader",
+                "metadata_input",
+                "upload_collection_select",
+            ]
+            for key in keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+            st.rerun()
+
+    collection_options = {f"{c['name']} ({c['uuid']})": c["uuid"] for c in collections}
+    selected_collection = st.selectbox(
+        "Select Collection",
+        list(collection_options.keys()),
+        key="upload_collection_select",
+    )
+    collection_id = collection_options[selected_collection]
+
+    uploaded_files = st.file_uploader(
+        "Choose files to upload",
+        type=["pdf", "txt", "md", "docx"],
+        accept_multiple_files=True,
+        key="file_uploader",
+    )
+
+    # Show uploaded files and auto-generate metadata
+    if uploaded_files:
+        st.write(f"**Selected {len(uploaded_files)} file(s):**")
+        default_metadata = []
+        for file in uploaded_files:
+            default_metadata.append(
+                {"source": file.name, "timestamp": datetime.now().isoformat()}
+            )
+
+        metadata_input = st.text_area(
+            "Metadata for files (JSON array, one object per file)",
+            value=json.dumps(default_metadata, indent=2),
+            height=200,
+            key="metadata_input",
+        )
+    else:
+        metadata_input = st.text_area(
+            "Metadata for files (JSON array, one object per file)",
+            value='[{"source": "filename.pdf", "timestamp": "'
+            + datetime.now().isoformat()
+            + '"}]',
+            height=100,
+            key="metadata_input",
+        )
+
+    if st.button("Upload and Embed Documents", type="primary"):
+        if not uploaded_files:
+            st.warning("Please select files to upload")
+        else:
+            try:
+                metadata_list = json.loads(metadata_input) if metadata_input else []
+
+                # Ensure metadata list matches number of files
+                if len(metadata_list) < len(uploaded_files):
+                    # Add default metadata for missing files
+                    for i in range(len(metadata_list), len(uploaded_files)):
+                        metadata_list.append(
+                            {
+                                "source": uploaded_files[i].name,
+                                "timestamp": datetime.now().isoformat(),
+                            }
+                        )
+                elif len(metadata_list) > len(uploaded_files):
+                    # Trim excess metadata
+                    metadata_list = metadata_list[: len(uploaded_files)]
+
+                files_data = []
+                for i, file in enumerate(uploaded_files):
+                    file_content = file.read()
+                    files_data.append(
+                        (
+                            "files",
+                            (
+                                file.name,
+                                file_content,
+                                file.type or "application/octet-stream",
+                            ),
+                        )
+                    )
+
+                data = {}
+                if metadata_list:
+                    data["metadatas_json"] = json.dumps(metadata_list)
+
+                with st.spinner("Uploading and embedding documents..."):
+                    success, result = make_request(
+                        "POST",
+                        f"/collections/{collection_id}/documents",
+                        data=data,
+                        files=files_data,
+                    )
+
+                if success:
+                    st.success("Documents uploaded and embedded successfully!")
+                    st.json(result)
+                else:
+                    st.error("Upload failed")
+                    if isinstance(result, str):
+                        st.code(result)
+
+            except json.JSONDecodeError:
+                st.error("Invalid JSON in metadata")
+            except Exception as e:
+                st.error(f"Error: {str(e)}")

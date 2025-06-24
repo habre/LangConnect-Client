@@ -13,6 +13,7 @@ from pathlib import Path
 load_dotenv()
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
+IS_TESTING = os.getenv("IS_TESTING", "").lower() == "true"
 # Check for saved auth credentials in environment variables
 SAVED_TOKEN = os.getenv("LANGCONNECT_TOKEN", "")
 SAVED_EMAIL = os.getenv("LANGCONNECT_EMAIL", "")
@@ -171,6 +172,35 @@ def auth_page():
     """Display authentication page."""
     st.title("🔗 LangConnect Client")
     st.subheader("Authentication")
+
+    # Testing mode - simple authentication
+    if IS_TESTING:
+        st.info("🧪 Testing Mode - Use simple credentials")
+        
+        with st.form("testing_signin_form"):
+            st.write("**Testing Users:**")
+            st.write("- user1")
+            st.write("- user2")
+            
+            username = st.text_input("Username", placeholder="user1 or user2")
+            submitted = st.form_submit_button("Sign In (Testing)", type="primary")
+            
+            if submitted:
+                if username in ["user1", "user2"]:
+                    st.session_state.authenticated = True
+                    st.session_state.access_token = username  # Use username as token in testing
+                    st.session_state.user_email = f"{username}@test.com"
+                    # Save to file
+                    save_auth_to_file(username, f"{username}@test.com")
+                    st.success(f"Successfully signed in as {username}!")
+                    st.rerun()
+                else:
+                    st.error("Please use 'user1' or 'user2' for testing")
+        
+        st.divider()
+        st.subheader("Production Authentication")
+        st.write("*For production use, configure SUPABASE_URL and SUPABASE_KEY, then set IS_TESTING=false*")
+        return
 
     tab1, tab2 = st.tabs(["Sign In", "Sign Up"])
 

@@ -172,25 +172,53 @@ docker compose down
 
 For local development without Docker:
 
-1. Install dependencies:
+1. **Create and activate virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Start PostgreSQL with pgvector (or use Docker for just the database):
+3. **Configure environment variables:**
    ```bash
-   docker-compose up -d postgres
+   cp .env.example .env
+   # Edit .env file - for testing, set IS_TESTING=true
    ```
 
-3. Run the API server:
+4. **Setup local PostgreSQL (using Homebrew on macOS):**
    ```bash
-   uvicorn langconnect.server:app --reload --host 0.0.0.0 --port 8080
+   # Install PostgreSQL
+   brew install postgresql
+   brew services start postgresql
+   
+   # Create database
+   createdb langconnect_db
+   
+   # Update .env with your local settings:
+   # POSTGRES_HOST=localhost
+   # POSTGRES_USER=your_username
+   # POSTGRES_PASSWORD=
+   # POSTGRES_DB=langconnect_db
    ```
 
-4. Run the Streamlit app:
+5. **Run the API server:**
    ```bash
+   source venv/bin/activate
+   uvicorn langconnect.server:APP --reload --host 0.0.0.0 --port 8080
+   ```
+
+6. **Run the Streamlit app (in another terminal):**
+   ```bash
+   source venv/bin/activate
    streamlit run Main.py
    ```
+
+**Testing Mode:**
+For quick testing without Supabase setup, set `IS_TESTING=true` in `.env`. This allows you to login with simple credentials (`user1` or `user2`) in the Streamlit interface.
 
 ## API Documentation
 

@@ -25,8 +25,19 @@ async def documents_create(
     collection_id: UUID,
     files: list[UploadFile] = File(...),
     metadatas_json: str | None = Form(None),
+    chunk_size: int = Form(1000),
+    chunk_overlap: int = Form(200),
 ):
-    """Processes and indexes (adds) new document files with optional metadata."""
+    """Processes and indexes (adds) new document files with optional metadata.
+    
+    Args:
+        user: Authenticated user
+        collection_id: UUID of the collection to add documents to
+        files: List of files to upload
+        metadatas_json: JSON string containing metadata for each file
+        chunk_size: Maximum number of characters in each chunk (default: 1000)
+        chunk_overlap: Number of overlapping characters between chunks (default: 200)
+    """
     # If no metadata JSON is provided, fill with None
     if not metadatas_json:
         metadatas: list[dict] | list[None] = [None] * len(files)
@@ -55,8 +66,13 @@ async def documents_create(
     # Pair files with their corresponding metadata
     for file, metadata in zip(files, metadatas, strict=False):
         try:
-            # Pass metadata to process_document
-            langchain_docs = await process_document(file, metadata=metadata)
+            # Pass metadata and chunk parameters to process_document
+            langchain_docs = await process_document(
+                file, 
+                metadata=metadata,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap
+            )
             if langchain_docs:
                 docs_to_index.extend(langchain_docs)
                 processed_files_count += 1

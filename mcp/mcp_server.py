@@ -5,21 +5,34 @@ LangConnect MCP Server using FastMCP (stdio)
 
 import os
 import json
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 import httpx
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import BaseOutputParser
+from langchain_core.prompts import PromptTemplate
 
 load_dotenv()
 
 # Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
 SUPABASE_ACCESS_TOKEN = os.getenv("SUPABASE_ACCESS_TOKEN", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # Create FastMCP server
 mcp = FastMCP(name="LangConnect")
+
+
+# Output parser for multi-query generation
+class LineListOutputParser(BaseOutputParser[List[str]]):
+    """Output parser for a list of lines."""
+
+    def parse(self, text: str) -> List[str]:
+        lines = text.strip().split("\n")
+        return list(filter(None, lines))  # Remove empty lines
 
 
 # HTTP client
@@ -75,11 +88,15 @@ async def search_documents(
     if not results:
         return "No results found."
 
-    output = f"## Search Results ({search_type})\n\n"
+    output = f"<search_results type=\"{search_type}\">\n"
     for i, result in enumerate(results, 1):
-        output += f"### Result {i} (Score: {result.get('score', 0):.4f})\n"
-        output += f"{result.get('page_content', '')}\n"
-        output += f"Document ID: {result.get('id', 'Unknown')}\n\n"
+        output += f"  <document>\n"
+        output += f"    <content>{result.get('page_content', '')}</content>\n"
+        output += f"    <metadata>{json.dumps(result.get('metadata', {}), ensure_ascii=False)}</metadata>\n"
+        output += f"    <score>{result.get('score', 0):.4f}</score>\n"
+        output += f"    <id>{result.get('id', 'Unknown')}</id>\n"
+        output += f"  </document>\n"
+    output += "</search_results>"
 
     return output
 
@@ -194,6 +211,43 @@ async def get_health_status() -> str:
     return f"Status: {result.get('status', 'Unknown')}\nAPI: {API_BASE_URL}\nAuth: {'✓' if SUPABASE_ACCESS_TOKEN else '✗'}"
 
 
+@mcp.tool
+async def multi_query(question: str) -> str:
+    """Generate multiple queries (3-5) for better vector search results from a single user question."""
+    if not OPENAI_API_KEY:
+        return json.dumps({"error": "OpenAI API key not configured"})
+    
+    try:
+        # Initialize LLM
+        llm = ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY)
+        
+        # Create prompt template
+        query_prompt = PromptTemplate(
+            input_variables=["question"],
+            template="""You are an AI language model assistant. Your task is to generate 3 to 5 
+different versions of the given user question to retrieve relevant documents from a vector 
+database. By generating multiple perspectives on the user question, your goal is to help
+the user overcome some of the limitations of the distance-based similarity search. 
+Provide these alternative questions separated by newlines. Do not number them.
+Original question: {question}""",
+        )
+        
+        # Create parser
+        output_parser = LineListOutputParser()
+        
+        # Create chain
+        chain = query_prompt | llm | output_parser
+        
+        # Generate queries
+        queries = await chain.ainvoke({"question": question})
+        
+        # Return as JSON array
+        return json.dumps(queries, ensure_ascii=False)
+        
+    except Exception as e:
+        return json.dumps({"error": f"Failed to generate queries: {str(e)}"})
+
+
 def main():
     """Entry point for the MCP server"""
     import sys
@@ -204,6 +258,10 @@ def main():
         f"SUPABASE_ACCESS_TOKEN configured: {'Yes' if SUPABASE_ACCESS_TOKEN else 'No'}",
         file=sys.stderr,
     )
+    print(
+        f"OPENAI_API_KEY configured: {'Yes' if OPENAI_API_KEY else 'No'}",
+        file=sys.stderr,
+    )
 
     if not SUPABASE_ACCESS_TOKEN:
         print(
@@ -212,6 +270,12 @@ def main():
         )
         print(
             "Please set SUPABASE_ACCESS_TOKEN environment variable with a valid JWT token.",
+            file=sys.stderr,
+        )
+    
+    if not OPENAI_API_KEY:
+        print(
+            "WARNING: No OPENAI_API_KEY provided. Multi-query generation will not work.",
             file=sys.stderr,
         )
 

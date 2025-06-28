@@ -35,12 +35,11 @@ MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
     fallback_parser=None,
 )
 
-# Text Splitter
-TEXT_SPLITTER = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-
-
 async def process_document(
-    file: UploadFile, metadata: dict | None = None
+    file: UploadFile, 
+    metadata: dict | None = None,
+    chunk_size: int = 1000,
+    chunk_overlap: int = 200
 ) -> list[Document]:
     """Process an uploaded file into LangChain documents."""
     # Generate a unique ID for this file processing instance
@@ -80,8 +79,14 @@ async def process_document(
             # Update with provided metadata, preserving existing keys if not overridden
             doc.metadata.update(metadata)
 
+    # Create text splitter with provided parameters
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size, 
+        chunk_overlap=chunk_overlap
+    )
+    
     # Split documents
-    split_docs = TEXT_SPLITTER.split_documents(docs)
+    split_docs = text_splitter.split_documents(docs)
 
     # Add the generated file_id to all split documents' metadata
     for split_doc in split_docs:

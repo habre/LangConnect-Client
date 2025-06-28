@@ -386,6 +386,7 @@ with tab2:
                                 "Content Preview": content,
                                 "Count": len(content),
                                 "Source": source,
+                                "Metadata": json.dumps(metadata, ensure_ascii=False),
                                 "File ID": metadata.get("file_id", "N/A"),
                                 "Timestamp": metadata.get("timestamp", "N/A"),
                                 "_full_id": doc.get(
@@ -432,7 +433,7 @@ with tab2:
             # Display dataframe with selection
             event = st.dataframe(
                 filtered_df[
-                    ["ID", "Content Preview", "Count", "Source", "Timestamp", "File ID"]
+                    ["ID", "Content Preview", "Count", "Source", "Metadata", "Timestamp", "File ID"]
                 ],  # Show only visible columns
                 use_container_width=True,
                 on_select="rerun",
@@ -517,6 +518,8 @@ with tab3:
                 "file_uploader",
                 "metadata_input",
                 "upload_collection_select",
+                "chunk_size",
+                "chunk_overlap",
             ]
             for key in keys_to_clear:
                 if key in st.session_state:
@@ -537,6 +540,30 @@ with tab3:
         accept_multiple_files=True,
         key="file_uploader",
     )
+    
+    # Add chunk size and overlap controls
+    st.subheader("Chunk Settings")
+    col1, col2 = st.columns(2)
+    with col1:
+        chunk_size = st.number_input(
+            "Chunk Size",
+            min_value=100,
+            max_value=5000,
+            value=1000,
+            step=100,
+            help="The maximum number of characters in each chunk",
+            key="chunk_size"
+        )
+    with col2:
+        chunk_overlap = st.number_input(
+            "Chunk Overlap",
+            min_value=0,
+            max_value=1000,
+            value=200,
+            step=50,
+            help="The number of overlapping characters between chunks",
+            key="chunk_overlap"
+        )
 
     # Show uploaded files and auto-generate metadata
     if uploaded_files:
@@ -598,7 +625,10 @@ with tab3:
                         )
                     )
 
-                data = {}
+                data = {
+                    "chunk_size": str(chunk_size),
+                    "chunk_overlap": str(chunk_overlap)
+                }
                 if metadata_list:
                     data["metadatas_json"] = json.dumps(metadata_list)
 

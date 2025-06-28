@@ -1,8 +1,7 @@
-FROM python:3.11-slim
+# Multi-stage build for smaller final image
+FROM python:3.11-slim as builder
 
-WORKDIR /app
-
-# Install system dependencies
+# Install build dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc \
@@ -11,31 +10,68 @@ RUN apt-get update && \
     curl \
     libxml2-dev \
     libxslt1-dev \
-    libmagic-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install --no-cache-dir uv
+
+WORKDIR /app
+
+# Copy dependency files and README (required by pyproject.toml)
+COPY pyproject.toml uv.lock README.md ./
+
+# Create virtual environment and install dependencies
+RUN uv venv && \
+    uv sync --frozen && \
+    uv pip install streamlit "unstructured[docx]"
+
+# Final stage
+FROM python:3.11-slim
+
+# Install runtime dependencies only
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libpq-dev \
+    libxml2 \
+    libxslt1.1 \
+    libmagic1 \
     poppler-utils \
     tesseract-ocr \
     pandoc \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv using pip
-RUN pip install uv
+# Install uv in the final stage for runtime use
+RUN pip install --no-cache-dir uv
 
-# Copy requirements first for better layer caching
-COPY pyproject.toml uv.lock ./
+# Create non-root user
+RUN groupadd -r langconnect && useradd -r -g langconnect langconnect
+
+WORKDIR /app
+
+# Create cache directory with proper permissions
+RUN mkdir -p /home/langconnect/.cache && \
+    chown -R langconnect:langconnect /home/langconnect/.cache
+
+# Copy virtual environment from builder
+COPY --from=builder --chown=langconnect:langconnect /app/.venv /app/.venv
 
 # Copy application code
-COPY . .
+COPY --chown=langconnect:langconnect . .
 
-# Install Python dependencies using uv
-RUN uv sync --frozen
+# Set environment variables
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Install additional dependencies with docx support
-RUN uv pip install streamlit "unstructured[docx]"
+# Switch to non-root user
+USER langconnect
 
-# Expose ports for both API and Streamlit
-# Note: The actual Streamlit port can be customized via STREAMLIT_PORT env var
+# Expose ports for API, Streamlit, and MCP server
 EXPOSE 8080 8501 8765
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()" || exit 1
+
 # Default command runs the API server
-# This can be overridden in docker-compose.yml for the streamlit service
-CMD ["uv", "run", "uvicorn", "langconnect.server:APP", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "langconnect.server:APP", "--host", "0.0.0.0", "--port", "8080"]

@@ -14,7 +14,7 @@ lint:
 TEST_FILE ?= tests/unit_tests
 
 test:
-	IS_TESTING=true uv run pytest $(TEST_FILE)
+	./run_tests.sh $(TEST_FILE)
 
 help:
 	@echo "Available commands:"

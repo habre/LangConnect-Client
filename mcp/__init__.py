@@ -1,1 +1,3 @@
-# MCP Server modules
+"""
+Package initializer for mcp module.
+"""

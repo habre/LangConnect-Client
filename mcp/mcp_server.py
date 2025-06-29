@@ -31,8 +31,9 @@ class LineListOutputParser(BaseOutputParser[List[str]]):
     """Output parser for a list of lines."""
 
     def parse(self, text: str) -> List[str]:
-        lines = text.strip().split("\n")
-        return list(filter(None, lines))  # Remove empty lines
+        # Split into lines, strip whitespace, and remove empties
+        lines = [line.strip() for line in text.strip().split("\n")]
+        return [line for line in lines if line]
 
 
 # HTTP client

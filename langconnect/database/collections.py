@@ -126,8 +126,9 @@ class CollectionsManager:
         metadata["owner_id"] = self.user_id
         metadata["name"] = collection_name
 
-        # For now just assign a random table id
-        table_id = str(uuid.uuid4())
+        # For now assign a table identifier safe for SQL naming
+        # Use hex string and prefix to avoid leading digits/hyphens
+        table_id = f"tbl_{uuid.uuid4().hex}"
 
         # triggers PGVector to create both the vectorstore and DB entry
         get_vectorstore(table_id, collection_metadata=metadata)

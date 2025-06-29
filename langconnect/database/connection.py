@@ -44,13 +44,10 @@ async def close_db_pool():
 
 @asynccontextmanager
 async def get_db_connection() -> AsyncGenerator[asyncpg.Connection, None]:
-    """Get a connection from the pool."""
+    """Acquire a connection from the pool and release it when done."""
     pool = await get_db_pool()
     async with pool.acquire() as conn:
-        try:
-            yield conn
-        finally:
-            await conn.close()
+        yield conn
 
 
 def get_vectorstore_engine(

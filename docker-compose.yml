@@ -55,31 +55,6 @@ services:
       - ./langconnect:/app/langconnect
     networks:
       - langconnect-network
-
-  streamlit:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: langconnect-streamlit
-    restart: always
-    depends_on:
-      - api
-    ports:
-      - "${STREAMLIT_PORT:-8501}:${STREAMLIT_PORT:-8501}"
-    env_file:
-      - .env
-    environment:
-      API_BASE_URL: http://api:8080
-      SUPABASE_URL: ${SUPABASE_URL}
-      SUPABASE_KEY: ${SUPABASE_KEY}
-      STREAMLIT_PORT: ${STREAMLIT_PORT:-8501}
-    command: uv run streamlit run Main.py --server.port=${STREAMLIT_PORT:-8501} --server.address=0.0.0.0
-    volumes:
-      - ./Main.py:/app/Main.py
-      - ./pages:/app/pages
-      - ./.streamlit:/app/.streamlit
-    networks:
-      - langconnect-network
       
   nextjs:
     build:
@@ -91,8 +66,15 @@ services:
       - api
     ports:
       - "3893:3893"
+    env_file:
+      - .env
     environment:
       API_URL: http://api:8080
+      NEXTAUTH_URL: http://localhost:3893
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
     networks:
       - langconnect-network
 

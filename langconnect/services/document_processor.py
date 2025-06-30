@@ -4,7 +4,6 @@ import uuid
 from fastapi import UploadFile
 from langchain_community.document_loaders.parsers import (
     BS4HTMLParser,
-    PDFMinerParser,
     PDFPlumberParser,
 )
 from langchain_community.document_loaders.parsers.generic import MimeTypeBasedParser
@@ -35,21 +34,22 @@ MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
     fallback_parser=None,
 )
 
+
 async def process_document(
-    file: UploadFile, 
+    file: UploadFile,
     metadata: dict | None = None,
     chunk_size: int = 1000,
-    chunk_overlap: int = 200
+    chunk_overlap: int = 200,
 ) -> list[Document]:
     """Process an uploaded file into LangChain documents."""
     # Generate a unique ID for this file processing instance
     file_id = uuid.uuid4()
 
     contents = await file.read()
-    
+
     # Determine the actual mime type
     mime_type = file.content_type or "text/plain"
-    
+
     # Handle application/octet-stream by checking file extension
     if mime_type == "application/octet-stream" and file.filename:
         filename_lower = file.filename.lower()
@@ -65,7 +65,7 @@ async def process_document(
             mime_type = "application/msword"
         elif filename_lower.endswith(".docx"):
             mime_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    
+
     blob = Blob(data=contents, mimetype=mime_type)
 
     docs = MIMETYPE_BASED_PARSER.parse(blob)
@@ -81,10 +81,9 @@ async def process_document(
 
     # Create text splitter with provided parameters
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size, 
-        chunk_overlap=chunk_overlap
+        chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
-    
+
     # Split documents
     split_docs = text_splitter.split_documents(docs)
 

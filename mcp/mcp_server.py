@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
-"""
-LangConnect MCP Server using FastMCP (stdio)
+"""LangConnect MCP Server using FastMCP (stdio)
 """
 
-import os
 import json
-from typing import Optional, List
+import os
 from datetime import datetime
+from typing import Optional
 
-from dotenv import load_dotenv
-from fastmcp import FastMCP
 import httpx
-from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
 from langchain_core.output_parsers import BaseOutputParser
 from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+
+from fastmcp import FastMCP
 
 load_dotenv()
 
 # Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
-SUPABASE_ACCESS_TOKEN = os.getenv("SUPABASE_ACCESS_TOKEN", "")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # Create FastMCP server
@@ -27,10 +27,10 @@ mcp = FastMCP(name="LangConnect")
 
 
 # Output parser for multi-query generation
-class LineListOutputParser(BaseOutputParser[List[str]]):
+class LineListOutputParser(BaseOutputParser[list[str]]):
     """Output parser for a list of lines."""
 
-    def parse(self, text: str) -> List[str]:
+    def parse(self, text: str) -> list[str]:
         # Split into lines, strip whitespace, and remove empties
         lines = [line.strip() for line in text.strip().split("\n")]
         return [line for line in lines if line]
@@ -62,7 +62,7 @@ class LangConnectClient:
 
 
 # Initialize client
-client = LangConnectClient(API_BASE_URL, SUPABASE_ACCESS_TOKEN)
+client = LangConnectClient(API_BASE_URL, SUPABASE_JWT_SECRET)
 
 
 @mcp.tool
@@ -89,14 +89,14 @@ async def search_documents(
     if not results:
         return "No results found."
 
-    output = f"<search_results type=\"{search_type}\">\n"
+    output = f'<search_results type="{search_type}">\n'
     for i, result in enumerate(results, 1):
-        output += f"  <document>\n"
+        output += "  <document>\n"
         output += f"    <content>{result.get('page_content', '')}</content>\n"
         output += f"    <metadata>{json.dumps(result.get('metadata', {}), ensure_ascii=False)}</metadata>\n"
         output += f"    <score>{result.get('score', 0):.4f}</score>\n"
         output += f"    <id>{result.get('id', 'Unknown')}</id>\n"
-        output += f"  </document>\n"
+        output += "  </document>\n"
     output += "</search_results>"
 
     return output
@@ -209,7 +209,7 @@ async def delete_document(collection_id: str, document_id: str) -> str:
 async def get_health_status() -> str:
     """Check API health status."""
     result = await client.request("GET", "/health")
-    return f"Status: {result.get('status', 'Unknown')}\nAPI: {API_BASE_URL}\nAuth: {'✓' if SUPABASE_ACCESS_TOKEN else '✗'}"
+    return f"Status: {result.get('status', 'Unknown')}\nAPI: {API_BASE_URL}\nAuth: {'✓' if SUPABASE_JWT_SECRET else '✗'}"
 
 
 @mcp.tool
@@ -217,11 +217,11 @@ async def multi_query(question: str) -> str:
     """Generate multiple queries (3-5) for better vector search results from a single user question."""
     if not OPENAI_API_KEY:
         return json.dumps({"error": "OpenAI API key not configured"})
-    
+
     try:
         # Initialize LLM
         llm = ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY)
-        
+
         # Create prompt template
         query_prompt = PromptTemplate(
             input_variables=["question"],
@@ -232,21 +232,21 @@ the user overcome some of the limitations of the distance-based similarity searc
 Provide these alternative questions separated by newlines. Do not number them.
 Original question: {question}""",
         )
-        
+
         # Create parser
         output_parser = LineListOutputParser()
-        
+
         # Create chain
         chain = query_prompt | llm | output_parser
-        
+
         # Generate queries
         queries = await chain.ainvoke({"question": question})
-        
+
         # Return as JSON array
         return json.dumps(queries, ensure_ascii=False)
-        
+
     except Exception as e:
-        return json.dumps({"error": f"Failed to generate queries: {str(e)}"})
+        return json.dumps({"error": f"Failed to generate queries: {e!s}"})
 
 
 def main():
@@ -256,7 +256,7 @@ def main():
     print("Starting LangConnect MCP server...", file=sys.stderr)
     print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
     print(
-        f"SUPABASE_ACCESS_TOKEN configured: {'Yes' if SUPABASE_ACCESS_TOKEN else 'No'}",
+        f"SUPABASE_JWT_SECRET configured: {'Yes' if SUPABASE_JWT_SECRET else 'No'}",
         file=sys.stderr,
     )
     print(
@@ -264,16 +264,16 @@ def main():
         file=sys.stderr,
     )
 
-    if not SUPABASE_ACCESS_TOKEN:
+    if not SUPABASE_JWT_SECRET:
         print(
-            "WARNING: No SUPABASE_ACCESS_TOKEN provided. API calls will likely fail.",
+            "WARNING: No SUPABASE_JWT_SECRET provided. API calls will likely fail.",
             file=sys.stderr,
         )
         print(
-            "Please set SUPABASE_ACCESS_TOKEN environment variable with a valid JWT token.",
+            "Please set SUPABASE_JWT_SECRET environment variable with a valid JWT token.",
             file=sys.stderr,
         )
-    
+
     if not OPENAI_API_KEY:
         print(
             "WARNING: No OPENAI_API_KEY provided. Multi-query generation will not work.",

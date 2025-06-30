@@ -1,4 +1,4 @@
+"""Stub package for fastmcp.server.
 """
-Stub package for fastmcp.server.
-"""
+
 from .server import FastMCP

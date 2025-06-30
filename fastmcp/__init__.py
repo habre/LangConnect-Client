@@ -1,4 +1,4 @@
+"""Stub package for fastmcp to aid testing.
 """
-Stub package for fastmcp to aid testing.
-"""
+
 from .server import FastMCP

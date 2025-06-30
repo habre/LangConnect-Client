@@ -29,7 +29,7 @@ async def documents_create(
     chunk_overlap: int = Form(200),
 ):
     """Processes and indexes (adds) new document files with optional metadata.
-    
+
     Args:
         user: Authenticated user
         collection_id: UUID of the collection to add documents to
@@ -68,10 +68,10 @@ async def documents_create(
         try:
             # Pass metadata and chunk parameters to process_document
             langchain_docs = await process_document(
-                file, 
+                file,
                 metadata=metadata,
                 chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap
+                chunk_overlap=chunk_overlap,
             )
             if langchain_docs:
                 docs_to_index.extend(langchain_docs)
@@ -169,10 +169,12 @@ async def documents_delete(
     user: Annotated[AuthenticatedUser, Depends(resolve_user)],
     collection_id: UUID,
     document_id: str,
-    delete_by: str = Query("document_id", description="Delete by 'document_id' or 'file_id'"),
+    delete_by: str = Query(
+        "document_id", description="Delete by 'document_id' or 'file_id'"
+    ),
 ):
     """Deletes a specific document from a collection by its ID.
-    
+
     Args:
         document_id: The ID to delete by (either document ID or file ID)
         delete_by: Specifies whether to delete by 'document_id' (single chunk) or 'file_id' (all chunks from file)
@@ -181,12 +183,12 @@ async def documents_delete(
         collection_id=str(collection_id),
         user_id=user.identity,
     )
-    
+
     if delete_by == "file_id":
         success = await collection.delete(file_id=document_id)
     else:  # Default to document_id
         success = await collection.delete(document_id=document_id)
-        
+
     if not success:
         raise HTTPException(status_code=404, detail="Failed to delete document.")
 

@@ -1,7 +1,8 @@
-import streamlit as st
-import requests
 import json
 import os
+
+import requests
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -100,7 +101,7 @@ def make_request(
             f"Connection failed. Please check if the API is running at {API_BASE_URL}",
         )
     except Exception as e:
-        return False, f"Request failed: {str(e)}"
+        return False, f"Request failed: {e!s}"
 
 
 # Check authentication
@@ -232,7 +233,7 @@ with col2:
             endpoint_group == "Documents"
             and "documents" in endpoint
             and method == "POST"
-            and not "search" in endpoint
+            and "search" not in endpoint
         ):
             st.info("Use the Document Upload tab for uploading documents")
         else:
@@ -240,7 +241,7 @@ with col2:
                 method == "GET"
                 and endpoint_group == "Documents"
                 and "documents" in endpoint
-                and not "search" in endpoint
+                and "search" not in endpoint
             ):
                 params = {}
                 if "limit" in locals():

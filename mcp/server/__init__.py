@@ -1,3 +1,2 @@
-"""
-Stub package for fastmcp internal imports.
+"""Stub package for fastmcp internal imports.
 """

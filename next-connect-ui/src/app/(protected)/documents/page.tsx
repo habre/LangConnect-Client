@@ -923,7 +923,7 @@ export default function DocumentsPage() {
                                           <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
                                             onClick={() => togglePopover(doc.id, false)}
                                           >
                                             <X className="h-4 w-4" />

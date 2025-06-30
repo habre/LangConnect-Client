@@ -79,7 +79,6 @@ NEXTAUTH_SECRET=lang-connect-server-secret
 
 # API 서버 URL
 NEXT_PUBLIC_API_URL=http://localhost:8080
-API_URL=http://api:8080
 ```
 
 ### 4. 개발 서버 실행
@@ -92,9 +91,14 @@ npm run dev
 pnpm dev
 ```
 
+
 브라우저에서 `http://localhost:3893`으로 접속합니다.
 
 ## 🐳 Docker 사용법
+### nextjs build
+``bash
+npm run build
+```
 
 ### Docker 이미지 빌드
 

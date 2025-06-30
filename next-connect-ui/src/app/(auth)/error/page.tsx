@@ -48,15 +48,15 @@ export default function ErrorPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <h1 className="text-2xl">{errorMessage}</h1>
-      <p className="text-sm text-muted-foreground">{errorDescription}</p>
+    <div className="flex flex-col items-center justify-center bg-background dark:bg-background">
+      <h1 className="text-2xl dark:text-gray-100">{errorMessage}</h1>
+      <p className="text-sm text-muted-foreground dark:text-gray-400">{errorDescription}</p>
       <div className="flex flex-col items-center justify-center space-y-4 py-6">
-        <div className="rounded-full bg-destructive/10 p-6">
+        <div className="rounded-full bg-destructive/10 dark:bg-destructive/20 p-6">
           <TriangleAlert className="h-8 w-8 text-destructive" />
         </div>
         <div className="space-y-2 text-center">
-          <p className="text-sm text-muted-foreground">다시 시도하거나 다른 방법으로 로그인해보세요.</p>
+          <p className="text-sm text-muted-foreground dark:text-gray-400">다시 시도하거나 다른 방법으로 로그인해보세요.</p>
         </div>
         <div className="flex gap-4">
           <Button asChild variant="outline">

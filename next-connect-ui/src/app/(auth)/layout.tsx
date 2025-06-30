@@ -9,7 +9,7 @@ export default async function AuthLayout({
   await requireGuest()
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-background">
       <div className="container mx-auto py-8 px-4 flex flex-col items-center justify-center flex-grow">
         {children}
       </div>

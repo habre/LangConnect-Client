@@ -24,7 +24,7 @@ export default async function DashboardLayout({
     }
     >
       <AppSidebar />
-      <SidebarInset className="!shadow-none border border-gray-200">
+      <SidebarInset className="!shadow-none border border-gray-200 dark:border-sidebar-border">
         <AppHeader />
         <main className="flex flex-1 w-full">
           <ScrollArea className="h-[calc(100vh-4.5rem)] w-full flex-1">

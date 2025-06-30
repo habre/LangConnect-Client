@@ -172,10 +172,10 @@ export function UploadDocumentModal({
               <Upload className="h-6 w-6 text-white" />
             </div>
             <div>
-              <DialogTitle className="text-xl bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <DialogTitle className="text-xl bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                 문서 업로드
               </DialogTitle>
-              <DialogDescription className="text-muted-foreground">
+              <DialogDescription className="text-muted-foreground dark:text-gray-400">
                 문서를 업로드하고 임베딩을 생성합니다.
               </DialogDescription>
             </div>
@@ -218,7 +218,7 @@ export function UploadDocumentModal({
 
               {/* File Upload Area */}
               <div className="space-y-4">
-                <label className="text-sm font-medium flex items-center gap-2">
+                <label className="text-sm font-medium dark:text-gray-200 flex items-center gap-2">
                   <FileText className="h-4 w-4 text-green-500" />
                   파일 업로드
                 </label>
@@ -227,18 +227,18 @@ export function UploadDocumentModal({
                   {...getRootProps()}
                   className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
                     isDragActive 
-                      ? 'border-green-500 bg-green-50' 
-                      : 'border-gray-300 hover:border-green-400 hover:bg-green-50/50'
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50/50 dark:hover:bg-green-900/10'
                   }`}
                 >
                   <input {...getInputProps()} />
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
                   {isDragActive ? (
-                    <p className="text-green-600">파일을 여기에 놓으세요...</p>
+                    <p className="text-green-600 dark:text-green-400">파일을 여기에 놓으세요...</p>
                   ) : (
                     <>
-                      <p className="text-gray-600 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
-                      <p className="text-sm text-gray-500">PDF, TXT, MD, DOCX 파일 지원</p>
+                      <p className="text-gray-600 dark:text-gray-300 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">PDF, TXT, MD, DOCX 파일 지원</p>
                     </>
                   )}
                 </div>
@@ -246,14 +246,14 @@ export function UploadDocumentModal({
                 {/* Uploaded Files List */}
                 {files.length > 0 && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">업로드된 파일 ({files.length}개)</label>
+                    <label className="text-sm font-medium dark:text-gray-200">업로드된 파일 ({files.length}개)</label>
                     <div className="max-h-32 overflow-y-auto space-y-2">
                       {files.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                        <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded">
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-green-500" />
-                            <span className="text-sm">{file.name}</span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-sm dark:text-gray-200">{file.name}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                               ({(file.size / 1024).toFixed(1)} KB)
                             </span>
                           </div>
@@ -275,7 +275,7 @@ export function UploadDocumentModal({
 
               {/* Chunk Settings */}
               <div className="space-y-4">
-                <label className="text-sm font-medium flex items-center gap-2">
+                <label className="text-sm font-medium dark:text-gray-200 flex items-center gap-2">
                   <Settings className="h-4 w-4 text-purple-500" />
                   청크 설정
                 </label>
@@ -297,7 +297,7 @@ export function UploadDocumentModal({
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription>각 청크의 최대 문자 수</FormDescription>
+                        <FormDescription className="text-gray-500 dark:text-gray-400">각 청크의 최대 문자 수</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -319,7 +319,7 @@ export function UploadDocumentModal({
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription>청크 간 중복되는 문자 수</FormDescription>
+                        <FormDescription className="text-gray-500 dark:text-gray-400">청크 간 중복되는 문자 수</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -341,7 +341,7 @@ export function UploadDocumentModal({
                         placeholder='[{"source": "filename.pdf", "timestamp": "2024-01-01T00:00:00.000Z"}]'
                       />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-gray-500 dark:text-gray-400">
                       각 파일에 대한 메타데이터를 JSON 배열 형식으로 입력하세요.
                     </FormDescription>
                     <FormMessage />
@@ -349,7 +349,7 @@ export function UploadDocumentModal({
                 )}
               />
 
-              <DialogFooter className="pt-6 border-t">
+              <DialogFooter className="pt-6 border-t dark:border-gray-700">
                 <div className="flex gap-3 w-full sm:w-auto">
                   <Button 
                     type="button" 

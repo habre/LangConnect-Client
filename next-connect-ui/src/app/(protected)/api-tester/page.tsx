@@ -335,7 +335,7 @@ export default function APITesterPage() {
               <Code className="h-8 w-8 text-blue-500" />
               API 테스터
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">API 엔드포인트를 테스트하고 응답을 확인하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">API 엔드포인트를 테스트하고 응답을 확인하세요</p>
           </div>
         </div>
 
@@ -346,7 +346,7 @@ export default function APITesterPage() {
                 <Settings className="h-5 w-5 text-blue-500" />
                 요청 설정
               </CardTitle>
-              <CardDescription className="text-gray-500 dark:text-gray-400">
+              <CardDescription className="text-gray-500 dark:text-gray-300">
                 테스트할 API 엔드포인트와 매개변수를 설정하세요
               </CardDescription>
             </CardHeader>
@@ -393,7 +393,7 @@ export default function APITesterPage() {
                     </Badge>
                     <code className="text-sm bg-white dark:bg-gray-700 dark:text-gray-200 px-2 py-1 rounded">{currentEndpoint.path}</code>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{currentEndpoint.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{currentEndpoint.description}</p>
                 </div>
               )}
 
@@ -614,7 +614,7 @@ export default function APITesterPage() {
                 )}
                 응답 결과
               </CardTitle>
-              <CardDescription className="text-gray-500 dark:text-gray-400">
+              <CardDescription className="text-gray-500 dark:text-gray-300">
                 {response ? (
                   <div className="flex items-center gap-2">
                     <Badge variant={response.success ? 'default' : 'destructive'}>
@@ -632,7 +632,7 @@ export default function APITesterPage() {
                 <div className="space-y-4">
                   {response.success && response.data && (
                     <div>
-                      <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">응답 데이터:</h4>
+                      <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">응답 데이터:</h4>
                       <pre className="text-xs bg-gray-50 dark:bg-gray-800 dark:text-gray-200 p-4 rounded overflow-x-auto whitespace-pre-wrap">
                         {JSON.stringify(response.data, null, 2)}
                       </pre>
@@ -649,9 +649,9 @@ export default function APITesterPage() {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                  <Code className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                  <p className="dark:text-gray-400">요청을 전송하면 응답이 표시됩니다</p>
+                <div className="text-center py-12 text-gray-500 dark:text-gray-300">
+                  <Code className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-500" />
+                  <p className="dark:text-gray-300">요청을 전송하면 응답이 표시됩니다</p>
                 </div>
               )}
             </CardContent>

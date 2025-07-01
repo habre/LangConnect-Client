@@ -326,7 +326,7 @@ export default function DocumentsPage() {
           <FileText className="h-12 w-12 text-green-500" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">문서가 없습니다</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-center mb-6 max-w-sm">
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-6 max-w-sm">
           첫 번째 문서를 업로드하여 컬렉션을 구축해보세요.
         </p>
         <Button 
@@ -349,7 +349,7 @@ export default function DocumentsPage() {
           <File className="h-16 w-16 text-green-500" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">문서가 없습니다</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-center mb-8 max-w-md">
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-8 max-w-md">
           선택한 컬렉션에 문서가 없습니다. 문서를 업로드하여 시작해보세요.
         </p>
         <Button 
@@ -371,7 +371,7 @@ export default function DocumentsPage() {
           <Archive className="h-16 w-16 text-purple-500" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">청크가 없습니다</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-center mb-8 max-w-md">
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-8 max-w-md">
           선택한 컬렉션에 청크가 없습니다. 문서를 업로드하면 자동으로 청크가 생성됩니다.
         </p>
         <Button 
@@ -395,7 +395,7 @@ export default function DocumentsPage() {
               <FileText className="h-8 w-8 text-green-500" />
               문서 관리
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">문서를 업로드하고 관리하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">문서를 업로드하고 관리하세요</p>
           </div>
           <div className="flex items-center gap-3">
             <Select value={selectedCollection} onValueChange={setSelectedCollection}>
@@ -447,17 +447,17 @@ export default function DocumentsPage() {
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">문서</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">문서</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalDocuments}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Archive className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">청크</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">청크</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalChunks}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">문자</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">문자</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalCharacters.toLocaleString()}</span>
                   </div>
                 </div>
@@ -558,16 +558,16 @@ export default function DocumentsPage() {
                                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                               />
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               소스
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               통계
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               File ID
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               타임스탬프
                             </th>
                           </tr>
@@ -603,7 +603,7 @@ export default function DocumentsPage() {
                                       <PopoverTrigger asChild>
                                         <button className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 transition-colors cursor-pointer flex items-center gap-1">
                                           {group.source}
-                                          <Info className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                                          <Info className="h-3 w-3 text-gray-400 dark:text-gray-400" />
                                         </button>
                                       </PopoverTrigger>
                                       <PopoverContent className="w-[600px] p-0" align="start">
@@ -722,12 +722,12 @@ export default function DocumentsPage() {
                                 </div>
                               </td>
                               <td className="px-4 py-4">
-                                <code className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
+                                <code className="text-xs text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                                   {group.file_id !== 'N/A' ? `${group.file_id.slice(0, 8)}...` : 'N/A'}
                                 </code>
                               </td>
                               <td className="px-4 py-4">
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                <div className="text-xs text-gray-500 dark:text-gray-300">
                                   {group.timestamp !== 'N/A' ? new Date(group.timestamp).toLocaleString() : 'N/A'}
                                 </div>
                               </td>
@@ -859,19 +859,19 @@ export default function DocumentsPage() {
                                 className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                               />
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               ID
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               내용 미리보기
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               문자 수
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               소스
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               타임스탬프
                             </th>
                           </tr>
@@ -893,7 +893,7 @@ export default function DocumentsPage() {
                                 />
                               </td>
                               <td className="px-4 py-4">
-                                <code className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
+                                <code className="text-xs text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                                   {doc.id.slice(0, 8)}...
                                 </code>
                               </td>
@@ -948,14 +948,14 @@ export default function DocumentsPage() {
                                             {/* 기본 정보 */}
                                             <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 border dark:border-gray-700">
                                               <div className="space-y-2">
-                                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                                   <span className="font-medium">문서 ID:</span>
                                                   <code className="bg-white dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-700 dark:text-gray-300 border dark:border-gray-600 text-xs">
                                                     {doc.id}
                                                   </code>
                                                 </div>
                                                 {doc.metadata?.file_id && (
-                                                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                                     <span className="font-medium">파일 ID:</span>
                                                     <code className="bg-white dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-700 dark:text-gray-300 border dark:border-gray-600 text-xs">
                                                       {doc.metadata.file_id}
@@ -963,7 +963,7 @@ export default function DocumentsPage() {
                                                   </div>
                                                 )}
                                                 {doc.metadata?.source && (
-                                                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                                     <span className="font-medium">소스:</span>
                                                     <span className="text-gray-700 dark:text-gray-300">{doc.metadata.source}</span>
                                                   </div>
@@ -978,7 +978,7 @@ export default function DocumentsPage() {
                                             <div className="space-y-3">
                                               <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-4 space-y-3">
                                                 <div className="grid grid-cols-[140px_1fr] gap-3">
-                                                  <span className="font-medium text-sm text-gray-600 dark:text-gray-400">문서 ID:</span>
+                                                  <span className="font-medium text-sm text-gray-600 dark:text-gray-300">문서 ID:</span>
                                                   <code className="bg-white px-2 py-1 rounded font-mono text-xs text-gray-700 border">
                                                     {doc.id}
                                                   </code>
@@ -987,7 +987,7 @@ export default function DocumentsPage() {
                                                 {doc.metadata && Object.entries(doc.metadata).length > 0 ? (
                                                   Object.entries(doc.metadata).map(([key, value]) => (
                                                     <div key={key} className="grid grid-cols-[140px_1fr] gap-3">
-                                                      <span className="font-medium text-sm text-gray-600 dark:text-gray-400">{key}:</span>
+                                                      <span className="font-medium text-sm text-gray-600 dark:text-gray-300">{key}:</span>
                                                       <div className="text-sm text-gray-700 dark:text-gray-300">
                                                         {typeof value === 'object' 
                                                           ? (
@@ -1007,7 +1007,7 @@ export default function DocumentsPage() {
                                                     </div>
                                                   ))
                                                 ) : (
-                                                  <div className="text-sm text-gray-400 dark:text-gray-500 italic text-center py-8">
+                                                  <div className="text-sm text-gray-400 dark:text-gray-400 italic text-center py-8">
                                                     추가 메타데이터가 없습니다
                                                   </div>
                                                 )}
@@ -1026,12 +1026,12 @@ export default function DocumentsPage() {
                                 </Badge>
                               </td>
                               <td className="px-4 py-4">
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                <div className="text-sm text-gray-500 dark:text-gray-300">
                                   {doc.metadata?.source || 'N/A'}
                                 </div>
                               </td>
                               <td className="px-4 py-4">
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                <div className="text-xs text-gray-500 dark:text-gray-300">
                                   {doc.metadata?.timestamp ? new Date(doc.metadata.timestamp).toLocaleString() : 'N/A'}
                                 </div>
                               </td>

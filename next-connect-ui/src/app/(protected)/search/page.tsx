@@ -168,7 +168,7 @@ export default function SearchPage() {
               <Search className="h-8 w-8 text-blue-500" />
               벡터 검색
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">문서 컬렉션에서 의미론적 검색을 수행하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">문서 컬렉션에서 의미론적 검색을 수행하세요</p>
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export default function SearchPage() {
               <Search className="h-5 w-5 text-blue-500" />
               검색 설정
             </CardTitle>
-            <CardDescription className="text-gray-500 dark:text-gray-400">
+            <CardDescription className="text-gray-500 dark:text-gray-300">
               검색할 컬렉션과 옵션을 설정하세요
             </CardDescription>
           </CardHeader>
@@ -327,7 +327,7 @@ export default function SearchPage() {
                 <FileText className="h-5 w-5 text-green-500" />
                 검색 결과
               </CardTitle>
-              <CardDescription className="text-gray-500 dark:text-gray-400">
+              <CardDescription className="text-gray-500 dark:text-gray-300">
                 {results.length}개의 결과를 찾았습니다
               </CardDescription>
             </CardHeader>
@@ -364,7 +364,7 @@ export default function SearchPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">내용:</h4>
+                        <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">내용:</h4>
                         <div 
                           className={`text-gray-900 dark:text-gray-100 max-w-none break-words overflow-wrap-anywhere word-break overflow-hidden prose prose-sm dark:prose-invert ${!expandedResults.has(index) ? 'line-clamp-3' : ''}`} 
                           style={{ wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}
@@ -380,7 +380,7 @@ export default function SearchPage() {
                         <>
                           {result.metadata && Object.keys(result.metadata).length > 0 && (
                             <div>
-                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">메타데이터:</h4>
+                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">메타데이터:</h4>
                               <pre className="text-xs bg-gray-50 dark:bg-gray-800 dark:text-gray-200 p-3 rounded whitespace-pre-wrap break-words overflow-hidden" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
                                 {JSON.stringify(result.metadata, null, 2)}
                               </pre>
@@ -388,7 +388,7 @@ export default function SearchPage() {
                           )}
                           
                           <div>
-                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-1">문서 ID:</h4>
+                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-1">문서 ID:</h4>
                             <code className="text-xs bg-gray-100 dark:bg-gray-800 dark:text-gray-200 px-2 py-1 rounded">
                               {result.id}
                             </code>

@@ -175,7 +175,7 @@ export function UploadDocumentModal({
               <DialogTitle className="text-xl bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                 문서 업로드
               </DialogTitle>
-              <DialogDescription className="text-muted-foreground dark:text-gray-400">
+              <DialogDescription className="text-muted-foreground dark:text-gray-300">
                 문서를 업로드하고 임베딩을 생성합니다.
               </DialogDescription>
             </div>
@@ -232,13 +232,13 @@ export function UploadDocumentModal({
                   }`}
                 >
                   <input {...getInputProps()} />
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-400 mb-4" />
                   {isDragActive ? (
                     <p className="text-green-600 dark:text-green-400">파일을 여기에 놓으세요...</p>
                   ) : (
                     <>
                       <p className="text-gray-600 dark:text-gray-300 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">PDF, TXT, MD, DOCX 파일 지원</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-300">PDF, TXT, MD, DOCX 파일 지원</p>
                     </>
                   )}
                 </div>
@@ -253,7 +253,7 @@ export function UploadDocumentModal({
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-green-500" />
                             <span className="text-sm dark:text-gray-200">{file.name}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="text-xs text-gray-500 dark:text-gray-300">
                               ({(file.size / 1024).toFixed(1)} KB)
                             </span>
                           </div>
@@ -297,7 +297,7 @@ export function UploadDocumentModal({
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription className="text-gray-500 dark:text-gray-400">각 청크의 최대 문자 수</FormDescription>
+                        <FormDescription className="text-gray-500 dark:text-gray-300">각 청크의 최대 문자 수</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -319,7 +319,7 @@ export function UploadDocumentModal({
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription className="text-gray-500 dark:text-gray-400">청크 간 중복되는 문자 수</FormDescription>
+                        <FormDescription className="text-gray-500 dark:text-gray-300">청크 간 중복되는 문자 수</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

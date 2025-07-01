@@ -66,7 +66,7 @@ export default function SignUp() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 pb-2">
           <h1 className="text-2xl font-bold tracking-tight dark:text-gray-100">회원 가입</h1>
-          <p className="text-sm text-muted-foreground dark:text-gray-400">아래 정보를 입력하여 계정을 만드세요</p>
+          <p className="text-sm text-muted-foreground dark:text-gray-300">아래 정보를 입력하여 계정을 만드세요</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 2. 폼 필드와 register 함수 연결 */}

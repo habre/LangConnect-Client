@@ -21,8 +21,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { CreateCollectionModal } from '@/components/modals/create-collection-modal'
+import { useTranslation } from '@/hooks/use-translation'
 
 export default function CollectionsPage() {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<CollectionWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -44,8 +46,8 @@ export default function CollectionsPage() {
       const response = await fetch('/api/collections')
       const res = await response.json()
       if (!res.success) {
-        toast.error("컬렉션 오류", {
-          description: "컬렉션 조회 실패"
+        toast.error(t("common.error"), {
+          description: t("collections.messages.fetchError")
         })
         return
       }
@@ -131,6 +133,7 @@ export default function CollectionsPage() {
       setLoading(false)
       setRefreshing(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -179,13 +182,14 @@ export default function CollectionsPage() {
     setSelectedCollections([])
 
     if (deletedCount > 0) {
-      alert(`✅ ${deletedCount}개의 컬렉션이 성공적으로 삭제되었습니다.`)
+      alert(`✅ ${t('collections.messages.deleteSuccess', { count: deletedCount })}`)
     }
     if (failedCount > 0) {
-      alert(`❌ ${failedCount}개의 컬렉션 삭제에 실패했습니다.`)
+      alert(`❌ ${t('collections.messages.deleteFailed', { count: failedCount })}`)
     }
 
     fetchCollections()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCollections, fetchCollections])
 
   const toggleSelection = (uuid: string) => {
@@ -254,16 +258,16 @@ export default function CollectionsPage() {
         <div className="rounded-full bg-blue-50 dark:bg-blue-900/20 p-6 mb-4">
           <FolderOpen className="h-12 w-12 text-blue-500" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">컬렉션이 없습니다</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('collections.noCollections')}</h3>
         <p className="text-gray-500 dark:text-gray-300 text-center mb-6 max-w-sm">
-          첫 번째 컬렉션을 생성하여 문서들을 체계적으로 관리해보세요.
+          {t('collections.noCollectionsDescription')}
         </p>
         <Button 
           onClick={() => setShowCreateModal(true)}
           className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
         >
           <Plus className="w-4 h-4 mr-2" />
-          첫 컬렉션 만들기
+          {t('collections.createFirstCollection')}
         </Button>
       </CardContent>
     </Card>
@@ -277,9 +281,9 @@ export default function CollectionsPage() {
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <Database className="h-8 w-8 text-blue-500" />
-              컬렉션 관리
+              {t('collections.title')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">문서 컬렉션을 생성하고 관리하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">{t('collections.description')}</p>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -290,7 +294,7 @@ export default function CollectionsPage() {
               className="flex items-center gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              새로고침
+              {t('common.refresh')}
             </Button>
             <Button 
               onClick={() => setShowCreateModal(true)}
@@ -298,7 +302,7 @@ export default function CollectionsPage() {
               className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <Plus className="w-4 h-4 mr-2" />
-              새 컬렉션
+              {t('collections.newCollection')}
             </Button>
           </div>
         </div>
@@ -318,17 +322,17 @@ export default function CollectionsPage() {
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <Database className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">컬렉션</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{t('collections.stats.collections')}</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{collections.length}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">문서</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{t('collections.stats.documents')}</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalDocuments}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Archive className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">청크</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{t('collections.stats.chunks')}</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalChunks}</span>
                   </div>
                 </div>
@@ -342,12 +346,12 @@ export default function CollectionsPage() {
                   <div className="flex flex-col items-center gap-2">
                     <CardTitle className="flex items-center gap-2">
                       <BookOpen className="h-5 w-5 text-blue-500" />
-                      컬렉션 목록
+                      {t('collections.collectionList')}
                     </CardTitle>
                     <CardDescription>
                       {selectedCollections.length > 0 
-                        ? `${selectedCollections.length}개 선택됨` 
-                        : `총 ${collections.length}개의 컬렉션`}
+                        ? t('common.selected', { count: selectedCollections.length }) 
+                        : t('common.total', { count: collections.length }) + ' ' + t('collections.stats.collections').toLowerCase()}
                     </CardDescription>
                   </div>
                   
@@ -356,19 +360,19 @@ export default function CollectionsPage() {
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" size="sm" className="flex items-center gap-2">
                           <Trash2 className="w-4 h-4" />
-                          선택 항목 삭제
+                          {t('collections.deleteConfirm.deleteSelected')}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>삭제 확인</AlertDialogTitle>
+                          <AlertDialogTitle>{t('collections.deleteConfirm.title')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            ⚠️ 정말로 선택한 컬렉션을 삭제하시겠습니까? <strong>이 작업은 복구할 수 없습니다.</strong>
+                            ⚠️ {t('collections.deleteConfirm.description')}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="my-4">
                           <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                            삭제할 컬렉션 ({selectedCollections.length}개):
+                            {t('collections.deleteConfirm.collectionsToDelete', { count: selectedCollections.length })}
                           </p>
                           <ul className="text-sm text-gray-700 dark:text-gray-300 mb-3 list-disc pl-5">
                             {selectedCollectionNames.map((name, idx) => (
@@ -376,11 +380,11 @@ export default function CollectionsPage() {
                             ))}
                           </ul>
                           <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                            ℹ️ 삭제된 컬렉션의 모든 문서도 함께 삭제됩니다.
+                            ℹ️ {t('collections.deleteConfirm.warningMessage')}
                           </div>
                         </div>
                         <AlertDialogFooter>
-                          <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
+                          <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleDeleteSelected}
                             disabled={deleting}
@@ -389,10 +393,10 @@ export default function CollectionsPage() {
                             {deleting ? (
                               <>
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                삭제 중...
+                                {t('collections.deleteConfirm.deleting')}
                               </>
                             ) : (
-                              '삭제'
+                              t('collections.deleteConfirm.deleteButton')
                             )}
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -421,16 +425,16 @@ export default function CollectionsPage() {
                           />
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          컬렉션
+                          {t('collections.table.collection')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          통계
+                          {t('collections.table.stats')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          UUID
+                          {t('collections.table.uuid')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          메타데이터
+                          {t('collections.table.metadata')}
                         </th>
                       </tr>
                     </thead>
@@ -487,7 +491,7 @@ export default function CollectionsPage() {
                                       <div className="space-y-4">
                                         {/* 기본 정보 */}
                                         <div>
-                                          <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">기본 정보</h4>
+                                          <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">{t('collections.popover.basicInfo')}</h4>
                                           <div className="space-y-2 text-sm">
                                             <div className="flex justify-between">
                                               <span className="text-gray-500 dark:text-gray-300">UUID:</span>
@@ -500,12 +504,12 @@ export default function CollectionsPage() {
 
                                         {/* 통계 정보 */}
                                         <div>
-                                          <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">통계</h4>
+                                          <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">{t('collections.popover.statistics')}</h4>
                                           <div className="grid grid-cols-2 gap-3">
                                             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                                               <div className="flex items-center gap-2 mb-1">
                                                 <FileText className="h-4 w-4 text-blue-500" />
-                                                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">문서</span>
+                                                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{t('collections.stats.documents')}</span>
                                               </div>
                                               <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
                                                 {collection.stats.documents}
@@ -514,7 +518,7 @@ export default function CollectionsPage() {
                                             <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
                                               <div className="flex items-center gap-2 mb-1">
                                                 <Archive className="h-4 w-4 text-purple-500" />
-                                                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">청크</span>
+                                                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">{t('collections.stats.chunks')}</span>
                                               </div>
                                               <div className="text-lg font-bold text-purple-900 dark:text-purple-100">
                                                 {collection.stats.chunks}
@@ -526,7 +530,7 @@ export default function CollectionsPage() {
                                         {/* 메타데이터 */}
                                         {collection.metadata && Object.keys(collection.metadata).length > 0 && (
                                           <div>
-                                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">메타데이터</h4>
+                                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">{t('collections.table.metadata')}</h4>
                                             <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded overflow-x-auto whitespace-pre-wrap">
                                               {JSON.stringify(collection.metadata, null, 2)}
                                             </pre>
@@ -543,10 +547,10 @@ export default function CollectionsPage() {
                             <div className="flex items-center space-x-2">
                               <Badge variant="secondary" className="text-xs">
                                 <FileText className="w-3 h-3 mr-1" />
-                                {collection.stats.documents} 문서
+                                {t('collections.stats.documentsCount', { count: collection.stats.documents })}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                {collection.stats.chunks} 청크
+                                {t('collections.stats.chunksCount', { count: collection.stats.chunks })}
                               </Badge>
                             </div>
                           </td>
@@ -562,7 +566,7 @@ export default function CollectionsPage() {
                                   {JSON.stringify(collection.metadata)}
                                 </code>
                               ) : (
-                                <span className="text-gray-400 dark:text-gray-400 italic">없음</span>
+                                <span className="text-gray-400 dark:text-gray-400 italic">{t('common.none')}</span>
                               )}
                             </div>
                           </td>

@@ -133,11 +133,12 @@ export default function CollectionsPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     fetchCollections()
-  }, [fetchCollections, t])
+  }, [fetchCollections])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -188,7 +189,8 @@ export default function CollectionsPage() {
     }
 
     fetchCollections()
-  }, [selectedCollections, fetchCollections, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCollections, fetchCollections])
 
   const toggleSelection = (uuid: string) => {
     setSelectedCollections(prev => 

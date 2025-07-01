@@ -207,7 +207,7 @@ export default function CollectionsPage() {
   // Loading skeleton component
   const LoadingSkeleton = () => (
     <div className="space-y-6">
-      <div className="bg-gray-50 rounded-lg p-4 animate-pulse">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 animate-pulse">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-4" />
@@ -249,13 +249,13 @@ export default function CollectionsPage() {
 
   // Empty state component
   const EmptyState = () => (
-    <Card className="border-dashed border-2 border-gray-300 bg-gray-50/50">
+    <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-800/50">
       <CardContent className="flex flex-col items-center justify-center py-12">
-        <div className="rounded-full bg-blue-50 p-6 mb-4">
+        <div className="rounded-full bg-blue-50 dark:bg-blue-900/20 p-6 mb-4">
           <FolderOpen className="h-12 w-12 text-blue-500" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">컬렉션이 없습니다</h3>
-        <p className="text-gray-500 text-center mb-6 max-w-sm">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">컬렉션이 없습니다</h3>
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-6 max-w-sm">
           첫 번째 컬렉션을 생성하여 문서들을 체계적으로 관리해보세요.
         </p>
         <Button 
@@ -270,16 +270,16 @@ export default function CollectionsPage() {
   )
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-background dark:bg-background">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent flex items-center gap-3">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <Database className="h-8 w-8 text-blue-500" />
               컬렉션 관리
             </h1>
-            <p className="text-gray-600 mt-1">문서 컬렉션을 생성하고 관리하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">문서 컬렉션을 생성하고 관리하세요</p>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -313,23 +313,23 @@ export default function CollectionsPage() {
         {!loading && collections.length > 0 && (
           <>
             {/* Statistics */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <Database className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm text-gray-600">컬렉션</span>
-                    <span className="font-semibold text-gray-900">{collections.length}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">컬렉션</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{collections.length}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-gray-600">문서</span>
-                    <span className="font-semibold text-gray-900">{totalDocuments}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">문서</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{totalDocuments}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Archive className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm text-gray-600">청크</span>
-                    <span className="font-semibold text-gray-900">{totalChunks}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">청크</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{totalChunks}</span>
                   </div>
                 </div>
               </div>
@@ -367,15 +367,15 @@ export default function CollectionsPage() {
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="my-4">
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                             삭제할 컬렉션 ({selectedCollections.length}개):
                           </p>
-                          <ul className="text-sm text-gray-700 mb-3 list-disc pl-5">
+                          <ul className="text-sm text-gray-700 dark:text-gray-300 mb-3 list-disc pl-5">
                             {selectedCollectionNames.map((name, idx) => (
                               <li key={idx}>{name}</li>
                             ))}
                           </ul>
-                          <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
+                          <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
                             ℹ️ 삭제된 컬렉션의 모든 문서도 함께 삭제됩니다.
                           </div>
                         </div>
@@ -405,7 +405,7 @@ export default function CollectionsPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-200">
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
                         <th className="w-8 px-4 py-3 text-left">
                           <input
                             type="checkbox"
@@ -420,26 +420,26 @@ export default function CollectionsPage() {
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           />
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           컬렉션
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           통계
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           UUID
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           메타데이터
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                       {collections.map((collection) => (
                         <tr
                           key={collection.uuid}
-                          className={`transition-colors hover:bg-gray-50/50 ${
-                            selectedCollections.includes(collection.uuid) ? 'bg-blue-50/50' : ''
+                          className={`transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-800/50 ${
+                            selectedCollections.includes(collection.uuid) ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
                           }`}
                         >
                           <td className="px-4 py-4">
@@ -463,15 +463,15 @@ export default function CollectionsPage() {
                                   onOpenChange={(isOpen) => togglePopover(collection.uuid, isOpen)}
                                 >
                                   <PopoverTrigger asChild>
-                                    <button className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-1">
+                                    <button className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer flex items-center gap-1">
                                       {collection.name}
-                                      <Info className="h-3 w-3 text-gray-400" />
+                                      <Info className="h-3 w-3 text-gray-400 dark:text-gray-400" />
                                     </button>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-[500px] p-0" align="start">
                                     <div className="p-4">
                                       <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                                           <Folder className="h-5 w-5 text-blue-500" />
                                           {collection.name}
                                         </h3>
@@ -487,11 +487,11 @@ export default function CollectionsPage() {
                                       <div className="space-y-4">
                                         {/* 기본 정보 */}
                                         <div>
-                                          <h4 className="font-medium text-sm text-gray-600 mb-2">기본 정보</h4>
+                                          <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">기본 정보</h4>
                                           <div className="space-y-2 text-sm">
                                             <div className="flex justify-between">
-                                              <span className="text-gray-500">UUID:</span>
-                                              <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                                              <span className="text-gray-500 dark:text-gray-300">UUID:</span>
+                                              <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                                                 {collection.uuid}
                                               </code>
                                             </div>
@@ -500,23 +500,23 @@ export default function CollectionsPage() {
 
                                         {/* 통계 정보 */}
                                         <div>
-                                          <h4 className="font-medium text-sm text-gray-600 mb-2">통계</h4>
+                                          <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">통계</h4>
                                           <div className="grid grid-cols-2 gap-3">
-                                            <div className="bg-blue-50 p-3 rounded-lg">
+                                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                                               <div className="flex items-center gap-2 mb-1">
                                                 <FileText className="h-4 w-4 text-blue-500" />
-                                                <span className="text-sm font-medium text-blue-700">문서</span>
+                                                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">문서</span>
                                               </div>
-                                              <div className="text-lg font-bold text-blue-900">
+                                              <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
                                                 {collection.stats.documents}
                                               </div>
                                             </div>
-                                            <div className="bg-purple-50 p-3 rounded-lg">
+                                            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
                                               <div className="flex items-center gap-2 mb-1">
                                                 <Archive className="h-4 w-4 text-purple-500" />
-                                                <span className="text-sm font-medium text-purple-700">청크</span>
+                                                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">청크</span>
                                               </div>
-                                              <div className="text-lg font-bold text-purple-900">
+                                              <div className="text-lg font-bold text-purple-900 dark:text-purple-100">
                                                 {collection.stats.chunks}
                                               </div>
                                             </div>
@@ -526,8 +526,8 @@ export default function CollectionsPage() {
                                         {/* 메타데이터 */}
                                         {collection.metadata && Object.keys(collection.metadata).length > 0 && (
                                           <div>
-                                            <h4 className="font-medium text-sm text-gray-600 mb-2">메타데이터</h4>
-                                            <pre className="text-xs bg-gray-50 p-3 rounded overflow-x-auto whitespace-pre-wrap">
+                                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">메타데이터</h4>
+                                            <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded overflow-x-auto whitespace-pre-wrap">
                                               {JSON.stringify(collection.metadata, null, 2)}
                                             </pre>
                                           </div>
@@ -551,18 +551,18 @@ export default function CollectionsPage() {
                             </div>
                           </td>
                           <td className="px-4 py-4">
-                            <code className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono">
+                            <code className="text-xs text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                               {collection.uuid.slice(0, 8)}...
                             </code>
                           </td>
                           <td className="px-4 py-4">
-                            <div className="text-xs text-gray-500 max-w-xs truncate">
+                            <div className="text-xs text-gray-500 dark:text-gray-300 max-w-xs truncate">
                               {Object.keys(collection.metadata || {}).length > 0 ? (
-                                <code className="bg-gray-100 px-2 py-1 rounded">
+                                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                                   {JSON.stringify(collection.metadata)}
                                 </code>
                               ) : (
-                                <span className="text-gray-400 italic">없음</span>
+                                <span className="text-gray-400 dark:text-gray-400 italic">없음</span>
                               )}
                             </div>
                           </td>

@@ -62,17 +62,17 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background dark:bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 pb-2">
-          <h1 className="text-2xl font-bold tracking-tight">회원 가입</h1>
-          <p className="text-sm text-muted-foreground">아래 정보를 입력하여 계정을 만드세요</p>
+          <h1 className="text-2xl font-bold tracking-tight dark:text-gray-100">회원 가입</h1>
+          <p className="text-sm text-muted-foreground dark:text-gray-300">아래 정보를 입력하여 계정을 만드세요</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 2. 폼 필드와 register 함수 연결 */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className="text-sm font-medium dark:text-gray-200">
                 이메일
               </label>
               <Input 
@@ -82,11 +82,11 @@ export default function SignUp() {
                 {...register("email")} 
               />
               {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label htmlFor="password" className="text-sm font-medium dark:text-gray-200">
                 비밀번호
               </label>
               <Input 
@@ -95,11 +95,11 @@ export default function SignUp() {
                 {...register("password")} 
               />
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.password.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
+              <label htmlFor="confirmPassword" className="text-sm font-medium dark:text-gray-200">
                 비밀번호 확인
               </label>
               <Input 
@@ -108,26 +108,26 @@ export default function SignUp() {
                 {...register("confirmPassword")} 
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.confirmPassword.message}</p>
               )}
             </div>
             
             {/* 루트 에러 메시지 표시 */}
             {errors.root && (
-              <p className="text-sm text-red-500 text-center">{errors.root.message}</p>
+              <p className="text-sm text-red-500 dark:text-red-400 text-center">{errors.root.message}</p>
             )}
             
             <Button 
               type="submit" 
-              className="w-full bg-black text-white hover:bg-black/90"
+              className="w-full bg-black dark:bg-white dark:text-black text-white hover:bg-black/90 dark:hover:bg-white/90"
               disabled={isSubmitting || registerLoading}
             >
               {(isSubmitting || registerLoading) ? "처리 중..." : "가입하기"}
             </Button>
           </form>
-          <div className="text-center text-sm">
+          <div className="text-center text-sm dark:text-gray-300">
             이미 계정이 있으신가요?{" "}
-            <Link href="/signin" className="font-medium underline">
+            <Link href="/signin" className="font-medium underline dark:text-blue-400 hover:dark:text-blue-300">
               로그인
             </Link>
           </div>

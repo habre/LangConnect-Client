@@ -107,10 +107,10 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
               <Folder className="h-6 w-6 text-white" />
             </div>
             <div>
-              <DialogTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <DialogTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
                 새 컬렉션 생성
               </DialogTitle>
-              <DialogDescription className="text-muted-foreground">
+              <DialogDescription className="text-muted-foreground dark:text-gray-300">
                 새로운 문서 컬렉션을 생성합니다. 컬렉션 이름과 메타데이터를 입력해주세요.
               </DialogDescription>
             </div>
@@ -139,7 +139,7 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
                         {...field} 
                       />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-gray-500 dark:text-gray-300">
                       문서들을 그룹화할 컬렉션의 이름을 입력하세요.
                     </FormDescription>
                     <FormMessage />
@@ -163,7 +163,7 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
                         {...field} 
                       />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-gray-500 dark:text-gray-300">
                       컬렉션에 대한 추가 정보를 JSON 형식으로 입력하세요.
                     </FormDescription>
                     <FormMessage />

@@ -1,4 +1,4 @@
-# LangConnect Next.js UI
+# LangConnect Next.js UI V2
 
 LangConnect의 Next.js 기반 웹 인터페이스입니다. 벡터 데이터베이스를 활용한 문서 관리 및 검색 시스템을 제공합니다.
 

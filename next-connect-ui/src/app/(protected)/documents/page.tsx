@@ -296,7 +296,7 @@ export default function DocumentsPage() {
   // Loading skeleton component
   const LoadingSkeleton = () => (
     <div className="space-y-6">
-      <div className="bg-gray-50 rounded-lg p-4 animate-pulse">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 animate-pulse">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-4" />
@@ -320,13 +320,13 @@ export default function DocumentsPage() {
 
   // Empty state component
   const EmptyState = () => (
-    <Card className="border-dashed border-2 border-gray-300 bg-gray-50/50">
+    <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-800/50">
       <CardContent className="flex flex-col items-center justify-center py-12">
-        <div className="rounded-full bg-green-50 p-6 mb-4">
+        <div className="rounded-full bg-green-50 dark:bg-green-900/20 p-6 mb-4">
           <FileText className="h-12 w-12 text-green-500" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">문서가 없습니다</h3>
-        <p className="text-gray-500 text-center mb-6 max-w-sm">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">문서가 없습니다</h3>
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-6 max-w-sm">
           첫 번째 문서를 업로드하여 컬렉션을 구축해보세요.
         </p>
         <Button 
@@ -343,13 +343,13 @@ export default function DocumentsPage() {
 
   // Empty documents tab state
   const EmptyDocumentsState = () => (
-    <div className="bg-white rounded-xl border border-gray-200/50 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-card rounded-xl border border-gray-200/50 dark:border-gray-700 shadow-sm overflow-hidden">
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="rounded-full bg-green-50 p-8 mb-6">
+        <div className="rounded-full bg-green-50 dark:bg-green-900/20 p-8 mb-6">
           <File className="h-16 w-16 text-green-500" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-3">문서가 없습니다</h3>
-        <p className="text-gray-500 text-center mb-8 max-w-md">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">문서가 없습니다</h3>
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-8 max-w-md">
           선택한 컬렉션에 문서가 없습니다. 문서를 업로드하여 시작해보세요.
         </p>
         <Button 
@@ -365,13 +365,13 @@ export default function DocumentsPage() {
 
   // Empty chunks tab state
   const EmptyChunksState = () => (
-    <div className="bg-white rounded-xl border border-gray-200/50 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-card rounded-xl border border-gray-200/50 dark:border-gray-700 shadow-sm overflow-hidden">
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="rounded-full bg-purple-50 p-8 mb-6">
+        <div className="rounded-full bg-purple-50 dark:bg-purple-900/20 p-8 mb-6">
           <Archive className="h-16 w-16 text-purple-500" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-3">청크가 없습니다</h3>
-        <p className="text-gray-500 text-center mb-8 max-w-md">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">청크가 없습니다</h3>
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-8 max-w-md">
           선택한 컬렉션에 청크가 없습니다. 문서를 업로드하면 자동으로 청크가 생성됩니다.
         </p>
         <Button 
@@ -386,16 +386,16 @@ export default function DocumentsPage() {
   )
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-background dark:bg-background">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent flex items-center gap-3">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <FileText className="h-8 w-8 text-green-500" />
               문서 관리
             </h1>
-            <p className="text-gray-600 mt-1">문서를 업로드하고 관리하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">문서를 업로드하고 관리하세요</p>
           </div>
           <div className="flex items-center gap-3">
             <Select value={selectedCollection} onValueChange={setSelectedCollection}>
@@ -442,23 +442,23 @@ export default function DocumentsPage() {
         {!loading && selectedCollection && totalDocuments > 0 && (
           <>
             {/* Statistics */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-gray-600">문서</span>
-                    <span className="font-semibold text-gray-900">{totalDocuments}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">문서</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{totalDocuments}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Archive className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm text-gray-600">청크</span>
-                    <span className="font-semibold text-gray-900">{totalChunks}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">청크</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{totalChunks}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm text-gray-600">문자</span>
-                    <span className="font-semibold text-gray-900">{totalCharacters.toLocaleString()}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">문자</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{totalCharacters.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -539,7 +539,7 @@ export default function DocumentsPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200">
+                          <tr className="border-b border-gray-200 dark:border-gray-700">
                             <th className="w-8 px-4 py-3 text-left">
                               <input
                                 type="checkbox"
@@ -558,26 +558,26 @@ export default function DocumentsPage() {
                                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                               />
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               소스
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               통계
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               File ID
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               타임스탬프
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                           {paginatedDocumentGroups.map((group) => (
                             <tr
                               key={group.file_id}
-                              className={`transition-colors hover:bg-gray-50/50 ${
-                                selectedDocuments.includes(group.file_id) ? 'bg-green-50/50' : ''
+                              className={`transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-800/50 ${
+                                selectedDocuments.includes(group.file_id) ? 'bg-green-50/50 dark:bg-green-900/20' : ''
                               }`}
                             >
                               <td className="px-4 py-4">
@@ -601,15 +601,15 @@ export default function DocumentsPage() {
                                       onOpenChange={(isOpen) => toggleSourcePopover(group.file_id, isOpen)}
                                     >
                                       <PopoverTrigger asChild>
-                                        <button className="text-sm font-medium text-gray-900 hover:text-green-600 transition-colors cursor-pointer flex items-center gap-1">
+                                        <button className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 transition-colors cursor-pointer flex items-center gap-1">
                                           {group.source}
-                                          <Info className="h-3 w-3 text-gray-400" />
+                                          <Info className="h-3 w-3 text-gray-400 dark:text-gray-400" />
                                         </button>
                                       </PopoverTrigger>
                                       <PopoverContent className="w-[600px] p-0" align="start">
                                         <div className="p-4">
                                           <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                                               <FileText className="h-5 w-5 text-green-500" />
                                               {group.source}
                                             </h3>
@@ -625,24 +625,24 @@ export default function DocumentsPage() {
                                           <div className="space-y-4">
                                             {/* 기본 정보 */}
                                             <div>
-                                              <h4 className="font-medium text-sm text-gray-600 mb-2">기본 정보</h4>
+                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">기본 정보</h4>
                                               <div className="space-y-2 text-sm">
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500">파일 ID:</span>
-                                                  <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                                                  <span className="text-gray-500 dark:text-gray-400">파일 ID:</span>
+                                                  <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                                                     {group.file_id}
                                                   </code>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500">총 청크 수:</span>
+                                                  <span className="text-gray-500 dark:text-gray-400">총 청크 수:</span>
                                                   <span className="font-medium">{group.chunks.length}개</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500">총 문자 수:</span>
+                                                  <span className="text-gray-500 dark:text-gray-400">총 문자 수:</span>
                                                   <span className="font-medium">{group.total_chars.toLocaleString()}자</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500">생성일:</span>
+                                                  <span className="text-gray-500 dark:text-gray-400">생성일:</span>
                                                   <span>{group.timestamp !== 'N/A' ? new Date(group.timestamp).toLocaleString('ko-KR') : 'N/A'}</span>
                                                 </div>
                                               </div>
@@ -650,26 +650,26 @@ export default function DocumentsPage() {
 
                                             {/* 통계 정보 */}
                                             <div>
-                                              <h4 className="font-medium text-sm text-gray-600 mb-2">통계</h4>
+                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">통계</h4>
                                               <div className="grid grid-cols-2 gap-3">
-                                                <div className="bg-green-50 p-3 rounded-lg">
+                                                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
                                                   <div className="flex items-center gap-2 mb-1">
                                                     <Archive className="h-4 w-4 text-green-500" />
                                                     <span className="text-sm font-medium text-green-700">청크</span>
                                                   </div>
-                                                  <div className="text-lg font-bold text-green-900">
+                                                  <div className="text-lg font-bold text-green-900 dark:text-green-100">
                                                     {group.chunks.length}
                                                   </div>
                                                   <div className="text-xs text-green-600">
                                                     평균 {Math.round(group.total_chars / group.chunks.length)}자/청크
                                                   </div>
                                                 </div>
-                                                <div className="bg-blue-50 p-3 rounded-lg">
+                                                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                                                   <div className="flex items-center gap-2 mb-1">
                                                     <BookOpen className="h-4 w-4 text-blue-500" />
                                                     <span className="text-sm font-medium text-blue-700">문자</span>
                                                   </div>
-                                                  <div className="text-lg font-bold text-blue-900">
+                                                  <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
                                                     {group.total_chars.toLocaleString()}
                                                   </div>
                                                   <div className="text-xs text-blue-600">
@@ -681,21 +681,21 @@ export default function DocumentsPage() {
 
                                             {/* 청크 목록 */}
                                             <div>
-                                              <h4 className="font-medium text-sm text-gray-600 mb-2">청크 목록 ({group.chunks.length}개)</h4>
+                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">청크 목록 ({group.chunks.length}개)</h4>
                                               <ScrollArea className="h-40 w-full rounded border">
                                                 <div className="p-2 space-y-2">
                                                   {group.chunks.map((chunk, index) => (
-                                                    <div key={chunk.id} className="text-xs border rounded p-2 bg-gray-50">
+                                                    <div key={chunk.id} className="text-xs border dark:border-gray-700 rounded p-2 bg-gray-50 dark:bg-gray-800">
                                                       <div className="flex justify-between items-start mb-1">
-                                                        <span className="font-mono text-gray-500">#{index + 1}</span>
-                                                        <code className="text-xs bg-white px-1 rounded">
+                                                        <span className="font-mono text-gray-500 dark:text-gray-400">#{index + 1}</span>
+                                                        <code className="text-xs bg-white dark:bg-gray-700 px-1 rounded">
                                                           {chunk.id.slice(0, 8)}...
                                                         </code>
                                                       </div>
-                                                      <p className="text-gray-700 line-clamp-2">
+                                                      <p className="text-gray-700 dark:text-gray-300 line-clamp-2">
                                                         {chunk.content.slice(0, 100)}{chunk.content.length > 100 ? '...' : ''}
                                                       </p>
-                                                      <div className="text-gray-500 mt-1">
+                                                      <div className="text-gray-500 dark:text-gray-400 mt-1">
                                                         {chunk.content.length}자
                                                       </div>
                                                     </div>
@@ -722,12 +722,12 @@ export default function DocumentsPage() {
                                 </div>
                               </td>
                               <td className="px-4 py-4">
-                                <code className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono">
+                                <code className="text-xs text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                                   {group.file_id !== 'N/A' ? `${group.file_id.slice(0, 8)}...` : 'N/A'}
                                 </code>
                               </td>
                               <td className="px-4 py-4">
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-500 dark:text-gray-300">
                                   {group.timestamp !== 'N/A' ? new Date(group.timestamp).toLocaleString() : 'N/A'}
                                 </div>
                               </td>
@@ -740,7 +740,7 @@ export default function DocumentsPage() {
 
                       {totalPages > 1 && (
                         <div className="flex items-center justify-between px-4 py-3 border-t">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             페이지 {currentPage} / {totalPages} (총 {filteredDocumentGroups.length}개 문서)
                           </div>
                           <div className="flex items-center gap-2">
@@ -802,7 +802,7 @@ export default function DocumentsPage() {
                     {availableSources.length > 1 && (
                       <div className="mb-4 flex items-center gap-2">
                         <Filter className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">소스 필터:</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">소스 필터:</span>
                         <Select 
                           value={selectedSources.length === availableSources.length ? 'all' : selectedSources[0] || ''}
                           onValueChange={(value) => {
@@ -840,7 +840,7 @@ export default function DocumentsPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200">
+                          <tr className="border-b border-gray-200 dark:border-gray-700">
                             <th className="w-8 px-4 py-3 text-left">
                               <input
                                 type="checkbox"
@@ -859,29 +859,29 @@ export default function DocumentsPage() {
                                 className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                               />
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               ID
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               내용 미리보기
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               문자 수
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               소스
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               타임스탬프
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                           {paginatedDocuments.map((doc) => (
                             <tr
                               key={doc.id}
-                              className={`transition-colors hover:bg-gray-50/50 ${
-                                selectedChunks.includes(doc.id) ? 'bg-purple-50/50' : ''
+                              className={`transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-800/50 ${
+                                selectedChunks.includes(doc.id) ? 'bg-purple-50/50 dark:bg-purple-900/20' : ''
                               }`}
                             >
                               <td className="px-4 py-4">
@@ -893,7 +893,7 @@ export default function DocumentsPage() {
                                 />
                               </td>
                               <td className="px-4 py-4">
-                                <code className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono">
+                                <code className="text-xs text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                                   {doc.id.slice(0, 8)}...
                                 </code>
                               </td>
@@ -907,7 +907,7 @@ export default function DocumentsPage() {
                                       variant="ghost"
                                       className="p-0 h-auto font-normal text-left justify-start max-w-md"
                                     >
-                                      <div className="text-sm text-gray-900 truncate hover:text-blue-600 transition-colors cursor-pointer">
+                                      <div className="text-sm text-gray-900 dark:text-gray-100 truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                                         {doc.content}
                                       </div>
                                     </Button>
@@ -915,7 +915,7 @@ export default function DocumentsPage() {
                                   <PopoverContent className="w-[700px] p-0" align="start">
                                     <div className="p-4">
                                       <div className="flex items-center justify-between mb-4">
-                                        <h4 className="font-semibold text-sm">청크 상세 정보</h4>
+                                        <h4 className="font-semibold text-sm dark:text-gray-100">청크 상세 정보</h4>
                                         <div className="flex items-center gap-2">
                                           <Badge variant="secondary" className="text-xs">
                                             {doc.content.length} 문자
@@ -923,7 +923,7 @@ export default function DocumentsPage() {
                                           <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="h-6 w-6 p-0 hover:bg-gray-100"
+                                            className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
                                             onClick={() => togglePopover(doc.id, false)}
                                           >
                                             <X className="h-4 w-4" />
@@ -939,33 +939,33 @@ export default function DocumentsPage() {
                                         
                                         <TabsContent value="content" className="mt-4">
                                           <div className="space-y-3">
-                                            <ScrollArea className="h-[350px] w-full border rounded-md p-4 bg-gray-50">
-                                              <div className="text-sm text-gray-700 whitespace-pre-wrap pr-4">
+                                            <ScrollArea className="h-[350px] w-full border dark:border-gray-700 rounded-md p-4 bg-gray-50 dark:bg-gray-800">
+                                              <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap pr-4">
                                                 {doc.content}
                                               </div>
                                             </ScrollArea>
                                             
                                             {/* 기본 정보 */}
-                                            <div className="bg-gray-50 rounded-md p-3 border">
+                                            <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 border dark:border-gray-700">
                                               <div className="space-y-2">
-                                                <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                                   <span className="font-medium">문서 ID:</span>
-                                                  <code className="bg-white px-2 py-1 rounded font-mono text-gray-700 border text-xs">
+                                                  <code className="bg-white dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-700 dark:text-gray-300 border dark:border-gray-600 text-xs">
                                                     {doc.id}
                                                   </code>
                                                 </div>
                                                 {doc.metadata?.file_id && (
-                                                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                                     <span className="font-medium">파일 ID:</span>
-                                                    <code className="bg-white px-2 py-1 rounded font-mono text-gray-700 border text-xs">
+                                                    <code className="bg-white dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-700 dark:text-gray-300 border dark:border-gray-600 text-xs">
                                                       {doc.metadata.file_id}
                                                     </code>
                                                   </div>
                                                 )}
                                                 {doc.metadata?.source && (
-                                                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                                     <span className="font-medium">소스:</span>
-                                                    <span className="text-gray-700">{doc.metadata.source}</span>
+                                                    <span className="text-gray-700 dark:text-gray-300">{doc.metadata.source}</span>
                                                   </div>
                                                 )}
                                               </div>
@@ -976,9 +976,9 @@ export default function DocumentsPage() {
                                         <TabsContent value="metadata" className="mt-4">
                                           <ScrollArea className="h-[400px] w-full">
                                             <div className="space-y-3">
-                                              <div className="bg-gray-50 rounded-md p-4 space-y-3">
+                                              <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-4 space-y-3">
                                                 <div className="grid grid-cols-[140px_1fr] gap-3">
-                                                  <span className="font-medium text-sm text-gray-600">문서 ID:</span>
+                                                  <span className="font-medium text-sm text-gray-600 dark:text-gray-300">문서 ID:</span>
                                                   <code className="bg-white px-2 py-1 rounded font-mono text-xs text-gray-700 border">
                                                     {doc.id}
                                                   </code>
@@ -987,17 +987,17 @@ export default function DocumentsPage() {
                                                 {doc.metadata && Object.entries(doc.metadata).length > 0 ? (
                                                   Object.entries(doc.metadata).map(([key, value]) => (
                                                     <div key={key} className="grid grid-cols-[140px_1fr] gap-3">
-                                                      <span className="font-medium text-sm text-gray-600">{key}:</span>
-                                                      <div className="text-sm text-gray-700">
+                                                      <span className="font-medium text-sm text-gray-600 dark:text-gray-300">{key}:</span>
+                                                      <div className="text-sm text-gray-700 dark:text-gray-300">
                                                         {typeof value === 'object' 
                                                           ? (
-                                                            <pre className="bg-white p-2 rounded border text-xs overflow-x-auto">
+                                                            <pre className="bg-white dark:bg-gray-700 p-2 rounded border dark:border-gray-600 text-xs overflow-x-auto">
                                                               {JSON.stringify(value, null, 2)}
                                                             </pre>
                                                           )
                                                           : key === 'timestamp' && typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)
                                                           ? (
-                                                            <span className="text-gray-700">
+                                                            <span className="text-gray-700 dark:text-gray-300">
                                                               {new Date(value).toLocaleString('ko-KR')}
                                                             </span>
                                                           )
@@ -1007,7 +1007,7 @@ export default function DocumentsPage() {
                                                     </div>
                                                   ))
                                                 ) : (
-                                                  <div className="text-sm text-gray-400 italic text-center py-8">
+                                                  <div className="text-sm text-gray-400 dark:text-gray-400 italic text-center py-8">
                                                     추가 메타데이터가 없습니다
                                                   </div>
                                                 )}
@@ -1026,12 +1026,12 @@ export default function DocumentsPage() {
                                 </Badge>
                               </td>
                               <td className="px-4 py-4">
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-300">
                                   {doc.metadata?.source || 'N/A'}
                                 </div>
                               </td>
                               <td className="px-4 py-4">
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-500 dark:text-gray-300">
                                   {doc.metadata?.timestamp ? new Date(doc.metadata.timestamp).toLocaleString() : 'N/A'}
                                 </div>
                               </td>
@@ -1043,7 +1043,7 @@ export default function DocumentsPage() {
                     )}
                       {totalPages > 1 && (
                         <div className="flex items-center justify-between px-4 py-3 border-t">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             페이지 {currentPage} / {totalPages} (총 {filteredDocuments.length}개 청크)
                           </div>
                           <div className="flex items-center gap-2">

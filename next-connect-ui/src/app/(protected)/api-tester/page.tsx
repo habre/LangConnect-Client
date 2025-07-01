@@ -152,8 +152,7 @@ export default function APITesterPage() {
   }, [selectedEndpoint])
 
   const buildRequestUrl = (endpoint: APIEndpoint): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL
-    let url = endpoint.id === 'health' ? `${baseUrl}${endpoint.path}` : `/api/${endpoint.path}`
+    let url = `/api/${endpoint.path}`
     
     if (endpoint.params?.includes('collection_id') && collectionId) {
       url = url.replace('{collection_id}', collectionId)
@@ -328,15 +327,15 @@ export default function APITesterPage() {
   const currentEndpoint = getCurrentEndpoint()
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-background dark:bg-background">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent flex items-center gap-3">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <Code className="h-8 w-8 text-blue-500" />
               API 테스터
             </h1>
-            <p className="text-gray-600 mt-1">API 엔드포인트를 테스트하고 응답을 확인하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">API 엔드포인트를 테스트하고 응답을 확인하세요</p>
           </div>
         </div>
 
@@ -347,7 +346,7 @@ export default function APITesterPage() {
                 <Settings className="h-5 w-5 text-blue-500" />
                 요청 설정
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-gray-500 dark:text-gray-300">
                 테스트할 API 엔드포인트와 매개변수를 설정하세요
               </CardDescription>
             </CardHeader>
@@ -385,16 +384,16 @@ export default function APITesterPage() {
               </div>
 
               {currentEndpoint && (
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Badge variant={currentEndpoint.method === 'GET' ? 'secondary' : 
                                   currentEndpoint.method === 'POST' ? 'default' : 
                                   currentEndpoint.method === 'DELETE' ? 'destructive' : 'outline'}>
                       {currentEndpoint.method}
                     </Badge>
-                    <code className="text-sm bg-white px-2 py-1 rounded">{currentEndpoint.path}</code>
+                    <code className="text-sm bg-white dark:bg-gray-700 dark:text-gray-200 px-2 py-1 rounded">{currentEndpoint.path}</code>
                   </div>
-                  <p className="text-sm text-gray-600">{currentEndpoint.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{currentEndpoint.description}</p>
                 </div>
               )}
 
@@ -530,11 +529,11 @@ export default function APITesterPage() {
                     />
                   </div>
                   
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-700">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
                       ℹ️ 문서 생성은 문서 페이지에서 문서 업로드를 사용하세요
                     </p>
-                    <Link href="/documents" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium mt-2">
+                    <Link href="/documents" className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium mt-2">
                       문서 페이지로 이동 →
                     </Link>
                   </div>
@@ -615,7 +614,7 @@ export default function APITesterPage() {
                 )}
                 응답 결과
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-gray-500 dark:text-gray-300">
                 {response ? (
                   <div className="flex items-center gap-2">
                     <Badge variant={response.success ? 'default' : 'destructive'}>
@@ -633,8 +632,8 @@ export default function APITesterPage() {
                 <div className="space-y-4">
                   {response.success && response.data && (
                     <div>
-                      <h4 className="font-medium text-sm text-gray-600 mb-2">응답 데이터:</h4>
-                      <pre className="text-xs bg-gray-50 p-4 rounded overflow-x-auto whitespace-pre-wrap">
+                      <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">응답 데이터:</h4>
+                      <pre className="text-xs bg-gray-50 dark:bg-gray-800 dark:text-gray-200 p-4 rounded overflow-x-auto whitespace-pre-wrap">
                         {JSON.stringify(response.data, null, 2)}
                       </pre>
                     </div>
@@ -642,17 +641,17 @@ export default function APITesterPage() {
 
                   {!response.success && response.error && (
                     <div>
-                      <h4 className="font-medium text-sm text-red-600 mb-2">오류:</h4>
-                      <pre className="text-xs bg-red-50 p-4 rounded overflow-x-auto text-red-700">
+                      <h4 className="font-medium text-sm text-red-600 dark:text-red-400 mb-2">오류:</h4>
+                      <pre className="text-xs bg-red-50 dark:bg-red-900/20 p-4 rounded overflow-x-auto text-red-700 dark:text-red-300">
                         {response.error}
                       </pre>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Code className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <p>요청을 전송하면 응답이 표시됩니다</p>
+                <div className="text-center py-12 text-gray-500 dark:text-gray-300">
+                  <Code className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-500" />
+                  <p className="dark:text-gray-300">요청을 전송하면 응답이 표시됩니다</p>
                 </div>
               )}
             </CardContent>

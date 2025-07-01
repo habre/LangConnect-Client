@@ -160,15 +160,15 @@ export default function SearchPage() {
 
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-background dark:bg-background">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent flex items-center gap-3">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <Search className="h-8 w-8 text-blue-500" />
               벡터 검색
             </h1>
-            <p className="text-gray-600 mt-1">문서 컬렉션에서 의미론적 검색을 수행하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">문서 컬렉션에서 의미론적 검색을 수행하세요</p>
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export default function SearchPage() {
               <Search className="h-5 w-5 text-blue-500" />
               검색 설정
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-500 dark:text-gray-300">
               검색할 컬렉션과 옵션을 설정하세요
             </CardDescription>
           </CardHeader>
@@ -227,10 +227,10 @@ export default function SearchPage() {
                   </div>
                   {sources.length > 0 && (
                     <div className="space-y-2">
-                      <p className="font-medium text-sm">사용 가능한 소스:</p>
+                      <p className="font-medium text-sm dark:text-gray-200">사용 가능한 소스:</p>
                       <div className="grid grid-cols-1 gap-2">
                         {sources.map((source, index) => (
-                          <code key={index} className="text-xs bg-gray-100 p-2 rounded block">
+                          <code key={index} className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded block dark:text-gray-200">
                             {`{"source": "${source}"}`}
                           </code>
                         ))}
@@ -327,13 +327,13 @@ export default function SearchPage() {
                 <FileText className="h-5 w-5 text-green-500" />
                 검색 결과
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-gray-500 dark:text-gray-300">
                 {results.length}개의 결과를 찾았습니다
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {results.map((result, index) => (
-                <Card key={result.id} className="border border-gray-200">
+                <Card key={result.id} className="border border-gray-200 dark:border-gray-700">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -364,9 +364,9 @@ export default function SearchPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-sm text-gray-600 mb-2">내용:</h4>
+                        <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">내용:</h4>
                         <div 
-                          className={`text-gray-900 max-w-none break-words overflow-wrap-anywhere word-break overflow-hidden prose prose-sm ${!expandedResults.has(index) ? 'line-clamp-3' : ''}`} 
+                          className={`text-gray-900 dark:text-gray-100 max-w-none break-words overflow-wrap-anywhere word-break overflow-hidden prose prose-sm dark:prose-invert ${!expandedResults.has(index) ? 'line-clamp-3' : ''}`} 
                           style={{ wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}
                           dangerouslySetInnerHTML={{ 
                             __html: expandedResults.has(index) 
@@ -380,16 +380,16 @@ export default function SearchPage() {
                         <>
                           {result.metadata && Object.keys(result.metadata).length > 0 && (
                             <div>
-                              <h4 className="font-medium text-sm text-gray-600 mb-2">메타데이터:</h4>
-                              <pre className="text-xs bg-gray-50 p-3 rounded whitespace-pre-wrap break-words overflow-hidden" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
+                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">메타데이터:</h4>
+                              <pre className="text-xs bg-gray-50 dark:bg-gray-800 dark:text-gray-200 p-3 rounded whitespace-pre-wrap break-words overflow-hidden" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
                                 {JSON.stringify(result.metadata, null, 2)}
                               </pre>
                             </div>
                           )}
                           
                           <div>
-                            <h4 className="font-medium text-sm text-gray-600 mb-1">문서 ID:</h4>
-                            <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-1">문서 ID:</h4>
+                            <code className="text-xs bg-gray-100 dark:bg-gray-800 dark:text-gray-200 px-2 py-1 rounded">
                               {result.id}
                             </code>
                           </div>

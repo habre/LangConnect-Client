@@ -24,10 +24,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import { useTranslation } from "@/hooks/use-translation"
 
-const formSchema = z.object({
+const createFormSchema = (t: (key: string) => string) => z.object({
   name: z.string().min(1, {
-    message: "컬렉션 이름을 입력해주세요.",
+    message: t('collections.modal.namePlaceholder'),
   }),
   metadata: z.string().refine((value) => {
     try {
@@ -37,7 +38,7 @@ const formSchema = z.object({
       return false
     }
   }, {
-    message: "올바른 JSON 형식을 입력해주세요.",
+    message: "Invalid JSON format",
   }),
 })
 
@@ -48,7 +49,9 @@ interface CreateCollectionModalProps {
 }
 
 export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateCollectionModalProps) {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
+  const formSchema = createFormSchema(t)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,11 +76,11 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.message || '컬렉션 생성에 실패했습니다.')
+        throw new Error(result.message || t('collections.modal.createError'))
       }
 
-      toast.success("컬렉션 생성 완료", {
-        description: `'${values.name}' 컬렉션이 성공적으로 생성되었습니다.`,
+      toast.success(t('common.success'), {
+        description: t('collections.modal.createSuccess'),
       })
       
       onOpenChange(false)
@@ -85,8 +88,8 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
       onSuccess?.()
     } catch (error: any) {
       console.error("Failed to create collection:", error)
-      toast.error("컬렉션 생성 실패", {
-        description: error.message || "컬렉션 생성 중 오류가 발생했습니다.",
+      toast.error(t('common.error'), {
+        description: error.message || t('collections.modal.createError'),
       })
     } finally {
       setIsLoading(false)
@@ -108,10 +111,10 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
             </div>
             <div>
               <DialogTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                새 컬렉션 생성
+                {t('collections.modal.createTitle')}
               </DialogTitle>
               <DialogDescription className="text-muted-foreground dark:text-gray-300">
-                새로운 문서 컬렉션을 생성합니다. 컬렉션 이름과 메타데이터를 입력해주세요.
+                {t('collections.modal.createTitle')}
               </DialogDescription>
             </div>
             <div className="ml-auto">
@@ -130,17 +133,17 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Folder className="h-4 w-4 text-blue-500" />
-                      컬렉션 이름
+                      {t('collections.modal.nameLabel')}
                     </FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="컬렉션 이름을 입력하세요" 
+                        placeholder={t('collections.modal.namePlaceholder')} 
                         className="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" 
                         {...field} 
                       />
                     </FormControl>
                     <FormDescription className="text-gray-500 dark:text-gray-300">
-                      문서들을 그룹화할 컬렉션의 이름을 입력하세요.
+                      {t('collections.modal.descriptionPlaceholder')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -154,7 +157,7 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Code className="h-4 w-4 text-emerald-500" />
-                      메타데이터 (JSON)
+                      {t('collections.table.metadata')} (JSON)
                     </FormLabel>
                     <FormControl>
                       <Textarea 
@@ -164,7 +167,7 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
                       />
                     </FormControl>
                     <FormDescription className="text-gray-500 dark:text-gray-300">
-                      컬렉션에 대한 추가 정보를 JSON 형식으로 입력하세요.
+                      {t('collections.modal.descriptionPlaceholder')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -180,7 +183,7 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
                     disabled={isLoading}
                     className="flex-1 sm:flex-initial"
                   >
-                    취소
+                    {t('common.cancel')}
                   </Button>
                   <Button 
                     type="submit" 
@@ -191,12 +194,12 @@ export function CreateCollectionModal({ open, onOpenChange, onSuccess }: CreateC
                     {isLoading ? (
                       <>
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                        생성 중...
+                        {t('collections.modal.creating')}
                       </>
                     ) : (
                       <>
                         <Plus className="mr-2 h-4 w-4" />
-                        컬렉션 생성
+                        {t('collections.modal.createTitle')}
                       </>
                     )}
                   </Button>

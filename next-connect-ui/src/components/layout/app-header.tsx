@@ -7,6 +7,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Home, Moon, Sun } from "lucide-react"
 import { Button } from "../ui/button"
 import { useTheme } from "next-themes"
+import { useTranslation } from "@/hooks/use-translation"
 
 // Navigation data structure matching sidebar
 interface NavigationItem {
@@ -15,25 +16,27 @@ interface NavigationItem {
   isHome?: boolean
 }
 
-const navigationData: {
-  main: NavigationItem[]
-} = {
-  main: [
-    { name: "메인", href: "/", isHome: true },
-    { name: "컬렉션", href: "/collections" },
-    { name: "문서", href: "/documents" },
-    { name: "검색", href: "/search" },
-    { name: "API 테스터", href: "/api-tester" },
-  ],
-}
-
 export function AppHeader() {
   const pathname = usePathname()
+  const { t } = useTranslation()
+  const { theme, setTheme } = useTheme()
+
+  const navigationData: {
+    main: NavigationItem[]
+  } = {
+    main: [
+      { name: t("sidebar.main"), href: "/", isHome: true },
+      { name: t("sidebar.collections"), href: "/collections" },
+      { name: t("sidebar.documents"), href: "/documents" },
+      { name: t("sidebar.search"), href: "/search" },
+      { name: t("sidebar.apiTester"), href: "/api-tester" },
+    ],
+  }
 
   // Generate breadcrumb items based on current path
   const generateBreadcrumb = () => {
     if (pathname === "/") {
-      return [{ name: "Main", href: "/", isHome: true }]
+      return [{ name: t("sidebar.main"), href: "/", isHome: true }]
     }
 
     const allItems = [
@@ -55,7 +58,6 @@ export function AppHeader() {
   }
 
   const breadcrumbItems = generateBreadcrumb()
-  const { theme, setTheme } = useTheme()
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border dark:border-sidebar-border transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 justify-between">
@@ -97,7 +99,7 @@ export function AppHeader() {
         >
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">테마 변경</span>
+          <span className="sr-only">Toggle theme</span>
         </Button>
       </div>
     </header>

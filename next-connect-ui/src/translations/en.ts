@@ -135,6 +135,16 @@ export const en = {
     response: 'Response',
     responseTime: 'Response time: {{time}}ms',
     status: 'Status'
+    ,
+    collectionIdRequired: 'Collection ID is required',
+    documentIdRequired: 'Document ID is required',
+    searchQueryRequired: 'Search query is required',
+    useDocumentUpload: 'Please use document upload in Documents page',
+    goToDocuments: 'Go to Documents →',
+    collectionIdPlaceholder: 'Enter collection ID',
+    documentIdPlaceholder: 'Enter document ID',
+    responsePlaceholder: 'API response will appear here',
+    sendRequestPlaceholder: 'Send a request to see the response'
   },
   auth: {
     signIn: 'Sign In',
@@ -157,5 +167,69 @@ export const en = {
   language: {
     english: 'English',
     korean: '한국어'
+  },
+  main: {
+    title: '🔗 LangConnect Client',
+    subtitle: 'Welcome to <strong>LangConnect</strong>.',
+    description: 'A powerful document management and search system powered by LangChain and PostgreSQL.',
+    keyFeatures: '🚀 Key Features',
+    keyFeaturesDescription: 'This application provides a comprehensive interface for document management with advanced search capabilities:',
+    collectionManagement: {
+      title: 'Collection Management',
+      features: [
+        'Create and manage document collections',
+        'View collection statistics',
+        'Batch delete collections'
+      ],
+      goTo: 'Go to Collections'
+    },
+    documentManagement: {
+      title: 'Document Management',
+      features: [
+        'Upload multiple documents (PDF, TXT, MD, DOCX)',
+        'View and manage document chunks',
+        'Delete individual chunks or entire documents'
+      ],
+      goTo: 'Go to Documents'
+    },
+    search: {
+      title: 'Search',
+      features: [
+        '<strong>Semantic Search</strong>: AI-powered similarity search',
+        '<strong>Keyword Search</strong>: Traditional full-text search',
+        '<strong>Hybrid Search</strong>: Combines benefits of both approaches',
+        'Advanced metadata filtering'
+      ],
+      goTo: 'Go to Search'
+    },
+    apiTester: {
+      title: 'API Tester',
+      features: [
+        'Test all API endpoints directly',
+        'Explore API functionality',
+        'Integration development and debugging'
+      ],
+      goTo: 'Go to API Tester'
+    },
+    about: {
+      title: '📌 About This Project',
+      description: '<strong>LangConnect</strong> is an open-source project that combines the following technologies:',
+      techStack: [
+        '<strong>LangChain</strong> - Document processing and embeddings',
+        '<strong>PostgreSQL</strong> - Vector storage with pgvector extension',
+        '<strong>FastAPI</strong> - High-performance API backend',
+        '<strong>Streamlit</strong> - Interactive user interface',
+        '<strong>Next.js</strong> - Interactive user interface'
+      ],
+      ragReady: 'Perfect for building RAG (Retrieval-Augmented Generation) applications!',
+      links: {
+        title: '🔗 Links',
+        github: 'GitHub Repository',
+        teddynote: 'TeddyNote LAB',
+        docs: 'Documentation',
+        nextjsClient: 'Next.js Client UI'
+      }
+    },
+    footer: 'Made with ❤️ by'
   }
 }

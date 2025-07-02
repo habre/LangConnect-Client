@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useLanguage } from '@/providers/language-provider'
 import { en } from '@/translations/en'
 import { ko } from '@/translations/ko'
@@ -18,13 +19,13 @@ export function useTranslation() {
   const { language } = useLanguage()
   const translations: TranslationKeys = language === 'ko' ? ko : en
 
-  const t = (key: string, values?: Record<string, any>): string => {
+  const t = useCallback((key: string, values?: Record<string, any>): string => {
     const translation = getNestedValue(translations, key)
     if (values) {
       return interpolate(translation, values)
     }
     return translation
-  }
+  }, [translations])
 
   return { t, language }
 }

@@ -22,24 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-
-const formSchema = z.object({
-  collectionId: z.string().min(1, {
-    message: "컬렉션을 선택해주세요.",
-  }),
-  chunkSize: z.number().min(100).max(5000),
-  chunkOverlap: z.number().min(0).max(1000),
-  metadata: z.string().refine((value) => {
-    try {
-      JSON.parse(value)
-      return true
-    } catch {
-      return false
-    }
-  }, {
-    message: "올바른 JSON 형식을 입력해주세요.",
-  }),
-})
+import { useTranslation } from "@/hooks/use-translation"
 
 interface Collection {
   uuid: string
@@ -59,9 +42,28 @@ export function UploadDocumentModal({
   collections,
   onSuccess 
 }: UploadDocumentModalProps) {
+  const { t } = useTranslation()
   const [files, setFiles] = useState<File[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { data: session } = useSession()
+
+  const formSchema = z.object({
+    collectionId: z.string().min(1, {
+      message: "Please select a collection",
+    }),
+    chunkSize: z.number().min(100).max(5000),
+    chunkOverlap: z.number().min(0).max(1000),
+    metadata: z.string().refine((value) => {
+      try {
+        JSON.parse(value)
+        return true
+      } catch {
+        return false
+      }
+    }, {
+      message: "Please enter valid JSON format",
+    }),
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -109,7 +111,7 @@ export function UploadDocumentModal({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (files.length === 0) {
-      toast.error("파일을 업로드해주세요")
+      toast.error("Please upload files")
       return
     }
 
@@ -136,12 +138,10 @@ export function UploadDocumentModal({
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.message || '문서 업로드에 실패했습니다.')
+        throw new Error(result.message || t('documents.messages.uploadError'))
       }
 
-      toast.success("문서 업로드 완료", {
-        description: `${files.length}개의 문서가 성공적으로 업로드되었습니다.`,
-      })
+      toast.success(t('documents.messages.uploadSuccess'))
       
       onOpenChange(false)
       form.reset()
@@ -149,8 +149,8 @@ export function UploadDocumentModal({
       onSuccess?.()
     } catch (error: any) {
       console.error("Failed to upload documents:", error)
-      toast.error("문서 업로드 실패", {
-        description: error.message || "문서 업로드 중 오류가 발생했습니다.",
+      toast.error(t('documents.messages.uploadError'), {
+        description: error.message || "An error occurred while uploading documents",
       })
     } finally {
       setIsLoading(false)
@@ -173,10 +173,10 @@ export function UploadDocumentModal({
             </div>
             <div>
               <DialogTitle className="text-xl bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                문서 업로드
+                {t('documents.modal.uploadTitle')}
               </DialogTitle>
               <DialogDescription className="text-muted-foreground dark:text-gray-300">
-                문서를 업로드하고 임베딩을 생성합니다.
+                Upload documents and create embeddings
               </DialogDescription>
             </div>
             <div className="ml-auto">
@@ -195,12 +195,12 @@ export function UploadDocumentModal({
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-blue-500" />
-                      컬렉션 선택
+                      {t('search.selectCollection')}
                     </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="컬렉션을 선택하세요" />
+                          <SelectValue placeholder={t('documents.selectCollection')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -220,7 +220,7 @@ export function UploadDocumentModal({
               <div className="space-y-4">
                 <label className="text-sm font-medium dark:text-gray-200 flex items-center gap-2">
                   <FileText className="h-4 w-4 text-green-500" />
-                  파일 업로드
+                  {t('documents.modal.selectFile')}
                 </label>
                 
                 <div
@@ -234,11 +234,11 @@ export function UploadDocumentModal({
                   <input {...getInputProps()} />
                   <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-400 mb-4" />
                   {isDragActive ? (
-                    <p className="text-green-600 dark:text-green-400">파일을 여기에 놓으세요...</p>
+                    <p className="text-green-600 dark:text-green-400">Drop files here...</p>
                   ) : (
                     <>
-                      <p className="text-gray-600 dark:text-gray-300 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-300">PDF, TXT, MD, DOCX 파일 지원</p>
+                      <p className="text-gray-600 dark:text-gray-300 mb-2">Drag and drop or click to upload</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-300">{t('documents.modal.supportedFormats')}</p>
                     </>
                   )}
                 </div>
@@ -246,7 +246,7 @@ export function UploadDocumentModal({
                 {/* Uploaded Files List */}
                 {files.length > 0 && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium dark:text-gray-200">업로드된 파일 ({files.length}개)</label>
+                    <label className="text-sm font-medium dark:text-gray-200">Uploaded files ({files.length})</label>
                     <div className="max-h-32 overflow-y-auto space-y-2">
                       {files.map((file, index) => (
                         <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded">
@@ -277,7 +277,7 @@ export function UploadDocumentModal({
               <div className="space-y-4">
                 <label className="text-sm font-medium dark:text-gray-200 flex items-center gap-2">
                   <Settings className="h-4 w-4 text-purple-500" />
-                  청크 설정
+                  Chunk Settings
                 </label>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -286,7 +286,7 @@ export function UploadDocumentModal({
                     name="chunkSize"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>청크 크기</FormLabel>
+                        <FormLabel>Chunk Size</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -297,7 +297,7 @@ export function UploadDocumentModal({
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription className="text-gray-500 dark:text-gray-300">각 청크의 최대 문자 수</FormDescription>
+                        <FormDescription className="text-gray-500 dark:text-gray-300">Maximum characters per chunk</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -308,7 +308,7 @@ export function UploadDocumentModal({
                     name="chunkOverlap"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>청크 중복</FormLabel>
+                        <FormLabel>Chunk Overlap</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -319,7 +319,7 @@ export function UploadDocumentModal({
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription className="text-gray-500 dark:text-gray-300">청크 간 중복되는 문자 수</FormDescription>
+                        <FormDescription className="text-gray-500 dark:text-gray-300">Overlapping characters between chunks</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -332,7 +332,7 @@ export function UploadDocumentModal({
                 name="metadata"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>메타데이터 (JSON)</FormLabel>
+                    <FormLabel>{t('collections.table.metadata')} (JSON)</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field}
@@ -342,7 +342,7 @@ export function UploadDocumentModal({
                       />
                     </FormControl>
                     <FormDescription className="text-gray-500 dark:text-gray-400">
-                      각 파일에 대한 메타데이터를 JSON 배열 형식으로 입력하세요.
+                      Enter metadata for each file in JSON array format
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -358,7 +358,7 @@ export function UploadDocumentModal({
                     disabled={isLoading}
                     className="flex-1 sm:flex-initial"
                   >
-                    취소
+                    {t('common.cancel')}
                   </Button>
                   <Button 
                     type="submit" 
@@ -368,12 +368,12 @@ export function UploadDocumentModal({
                     {isLoading ? (
                       <>
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                        업로드 중...
+                        {t('documents.modal.uploading')}
                       </>
                     ) : (
                       <>
                         <Upload className="mr-2 h-4 w-4" />
-                        문서 업로드
+                        {t('documents.uploadDocument')}
                       </>
                     )}
                   </Button>

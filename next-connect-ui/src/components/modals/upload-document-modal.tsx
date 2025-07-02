@@ -111,7 +111,7 @@ export function UploadDocumentModal({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (files.length === 0) {
-      toast.error("Please upload files")
+      toast.error(t('documents.messages.uploadRequireFiles'))
       return
     }
 

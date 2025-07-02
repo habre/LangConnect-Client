@@ -19,10 +19,16 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Handle 204 No Content responses
+    if (response.status === 204) {
+      response.data = { success: true };
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
       // 세션 갱신

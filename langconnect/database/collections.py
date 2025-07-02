@@ -377,7 +377,7 @@ class Collection:
                     WHERE lpe.collection_id = lpc.uuid
                       AND lpc.uuid = $1
                       AND lpc.cmetadata->>'owner_id' = $2
-                      AND lpe.id = ANY($3::uuid[])
+                      AND lpe.id = ANY($3::text[])
                     """,
                     self.collection_id,
                     self.user_id,

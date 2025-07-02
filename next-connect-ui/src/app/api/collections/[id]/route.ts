@@ -4,14 +4,19 @@ import { serverFetchAPI } from "@/lib/api"
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    // 백엔드 API 호출
-    const response = await serverFetchAPI(`/collections/${id}`, {
+    // 백엔드 API 호출 - returns 204 No Content on success
+    await serverFetchAPI(`/collections/${id}`, {
       method: "DELETE",
     })
 
-    return NextResponse.json({ success: true, data: response }, { status: 201 })
+    // Since backend returns 204 No Content, we create our own success response
+    return NextResponse.json({ success: true, message: 'Collection deleted successfully' }, { status: 200 })
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 })
+    console.error('Failed to delete collection:', error)
+    return NextResponse.json({ 
+      success: false, 
+      message: error.message || 'Failed to delete collection' 
+    }, { status: 500 })
   }
 }
 

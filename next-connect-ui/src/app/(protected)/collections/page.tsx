@@ -101,10 +101,18 @@ export default function CollectionsPage() {
 
     for (const uuid of selectedCollections) {
       try {
-        await fetch(`/api/collections/${uuid}`, {
+        const response = await fetch(`/api/collections/${uuid}`, {
           method: 'DELETE',
         })
-        deletedCount++
+        
+        const result = await response.json()
+        
+        if (response.ok && result.success) {
+          deletedCount++
+        } else {
+          failedCount++
+          console.error(`Failed to delete collection ${uuid}:`, result.message)
+        }
       } catch (error) {
         failedCount++
         console.error(`Failed to delete collection ${uuid}:`, error)
@@ -116,10 +124,10 @@ export default function CollectionsPage() {
     setSelectedCollections([])
 
     if (deletedCount > 0) {
-      alert(`✅ ${t('collections.messages.deleteSuccess', { count: deletedCount })}`)
+      toast.success(t('collections.messages.deleteSuccess', { count: deletedCount }))
     }
     if (failedCount > 0) {
-      alert(`❌ ${t('collections.messages.deleteFailed', { count: failedCount })}`)
+      toast.error(t('collections.messages.deleteFailed', { count: failedCount }))
     }
 
     fetchCollections()

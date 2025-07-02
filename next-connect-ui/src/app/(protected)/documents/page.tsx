@@ -189,8 +189,10 @@ export default function DocumentsPage() {
     
     const payload: any = {}
     if (activeTab === 'documents') {
+      // For documents tab, we delete by file_ids
       payload.file_ids = toDelete
     } else {
+      // For chunks tab, we delete by document_ids (individual chunk IDs)
       payload.document_ids = toDelete
     }
 
@@ -205,8 +207,8 @@ export default function DocumentsPage() {
       
       const result = await response.json()
 
-      if (result.success) {
-        toast.success(t('documents.messages.deleteSuccess', { count: result.deleted_count }))
+      if (response.ok && result.success) {
+        toast.success(t('documents.messages.deleteSuccess', { count: result.deleted_count || toDelete.length }))
       } else {
         throw new Error(result.message || 'Failed to delete items.')
       }

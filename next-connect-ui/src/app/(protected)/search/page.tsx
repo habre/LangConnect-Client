@@ -13,8 +13,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Badge } from '@/components/ui/badge'
 import { Collection } from '@/types/collection'
 import { SearchResult } from '@/types/search'
+import { useTranslation } from '@/hooks/use-translation'
 
 export default function SearchPage() {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<Collection[]>([])
   const [selectedCollection, setSelectedCollection] = useState<string>('')
   const [query, setQuery] = useState('')
@@ -33,8 +35,8 @@ export default function SearchPage() {
       const response = await fetch('/api/collections')
       const res = await response.json()
       if (!res.success) {
-        toast.error("컬렉션 오류", {
-          description: "컬렉션 조회 실패"
+        toast.error(t('common.error'), {
+          description: t('collections.messages.fetchError')
         })
         return
       }
@@ -47,9 +49,9 @@ export default function SearchPage() {
       }
     } catch (error) {
       console.error('Failed to fetch collections:', error)
-      toast.error("컬렉션 조회 실패")
+      toast.error(t('collections.messages.fetchError'))
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchCollections()
@@ -73,11 +75,11 @@ export default function SearchPage() {
         })
         setSources(Array.from(uniqueSources).sort())
       } else {
-        toast.error("소스 로드 실패")
+        toast.error(t('common.error'))
       }
     } catch (error) {
       console.error('Failed to load sources:', error)
-      toast.error("소스 로드 실패")
+      toast.error(t('common.error'))
     } finally {
       setLoadingSources(false)
     }
@@ -85,12 +87,16 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     if (!query.trim()) {
-      toast.error("검색어를 입력해주세요")
+      toast.error(t('common.error'), {
+        description: 'Please enter search query'
+      })
       return
     }
     
     if (!selectedCollection) {
-      toast.error("컬렉션을 선택해주세요")
+      toast.error(t('common.error'), {
+        description: 'Please select a collection'
+      })
       return
     }
 
@@ -106,7 +112,9 @@ export default function SearchPage() {
         try {
           searchData.filter = JSON.parse(filterJson)
         } catch (error) {
-          toast.error("필터 JSON 형식이 잘못되었습니다")
+          toast.error(t('common.error'), {
+            description: 'Invalid JSON format'
+          })
           setLoading(false)
           return
         }
@@ -125,18 +133,18 @@ export default function SearchPage() {
       if (res.success) {
         setResults(res.data || [])
         if (res.data && res.data.length > 0) {
-          toast.success(`${res.data.length}개의 결과를 찾았습니다`)
+          toast.success(`Found ${res.data.length} results`)
         } else {
-          toast.info("검색 결과가 없습니다")
+          toast.info(t('search.noResults'))
         }
       } else {
-        toast.error("검색 실패", {
+        toast.error(t('common.error'), {
           description: res.message
         })
       }
     } catch (error) {
       console.error('Search failed:', error)
-      toast.error("검색 중 오류가 발생했습니다")
+      toast.error(t('common.error'))
     } finally {
       setLoading(false)
     }
@@ -166,9 +174,9 @@ export default function SearchPage() {
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <Search className="h-8 w-8 text-blue-500" />
-              벡터 검색
+              {t('search.title')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">문서 컬렉션에서 의미론적 검색을 수행하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">{t('search.description')}</p>
           </div>
         </div>
 
@@ -176,18 +184,18 @@ export default function SearchPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5 text-blue-500" />
-              검색 설정
+              {t('search.title')}
             </CardTitle>
             <CardDescription className="text-gray-500 dark:text-gray-300">
-              검색할 컬렉션과 옵션을 설정하세요
+              {t('search.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="collection">컬렉션 선택</Label>
+              <Label htmlFor="collection">{t('search.selectCollection')}</Label>
               <Select value={selectedCollection} onValueChange={setSelectedCollection}>
                 <SelectTrigger>
-                  <SelectValue placeholder="컬렉션을 선택하세요" />
+                  <SelectValue placeholder={t('search.selectCollection')} />
                 </SelectTrigger>
                 <SelectContent>
                   {collections.map((collection) => (
@@ -203,7 +211,7 @@ export default function SearchPage() {
               <Collapsible open={showSources} onOpenChange={setShowSources}>
                 <CollapsibleTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
-                    이 컬렉션의 사용 가능한 소스 보기
+                    View Available Sources
                     {showSources ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
@@ -218,16 +226,16 @@ export default function SearchPage() {
                       {loadingSources ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          로딩 중...
+                          {t('common.loading')}
                         </>
                       ) : (
-                        '소스 로드'
+                        'Load Sources'
                       )}
                     </Button>
                   </div>
                   {sources.length > 0 && (
                     <div className="space-y-2">
-                      <p className="font-medium text-sm dark:text-gray-200">사용 가능한 소스:</p>
+                      <p className="font-medium text-sm dark:text-gray-200">Available Sources:</p>
                       <div className="grid grid-cols-1 gap-2">
                         {sources.map((source, index) => (
                           <code key={index} className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded block dark:text-gray-200">
@@ -242,10 +250,10 @@ export default function SearchPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="query">검색어</Label>
+              <Label htmlFor="query">{t('common.search')}</Label>
               <Input
                 id="query"
-                placeholder="검색어를 입력하세요..."
+                placeholder={t('search.searchPlaceholder')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -254,7 +262,7 @@ export default function SearchPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="limit">결과 개수</Label>
+                <Label htmlFor="limit">Result Limit</Label>
                 <Select value={limit.toString()} onValueChange={(value) => setLimit(Number(value))}>
                   <SelectTrigger>
                     <SelectValue />
@@ -262,7 +270,7 @@ export default function SearchPage() {
                   <SelectContent>
                     {[1, 5, 10, 20, 30, 50].map((num) => (
                       <SelectItem key={num} value={num.toString()}>
-                        {num}개
+                        {num}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -270,26 +278,26 @@ export default function SearchPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="searchType">검색 타입</Label>
+                <Label htmlFor="searchType">{t('search.searchType')}</Label>
                 <Select value={searchType} onValueChange={setSearchType}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="semantic">의미론적 검색</SelectItem>
-                    <SelectItem value="keyword">키워드 검색</SelectItem>
-                    <SelectItem value="hybrid">하이브리드 검색</SelectItem>
+                    <SelectItem value="semantic">{t('search.semanticSearch')}</SelectItem>
+                    <SelectItem value="keyword">{t('search.keywordSearch')}</SelectItem>
+                    <SelectItem value="hybrid">{t('search.hybridSearch')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="filter">메타데이터 필터</Label>
+                <Label htmlFor="filter">{t('collections.table.metadata')} Filter</Label>
                 <Textarea
                   id="filter"
                   placeholder={`{"source": "sample.pdf"}
 
-# 다른 예시
+# Other examples
 {"file_id": "abc123"}
 {"source": "document.pdf", "type": "report"}`}
                   value={filterJson}
@@ -308,12 +316,12 @@ export default function SearchPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  검색 중...
+                  {t('search.searching')}
                 </>
               ) : (
                 <>
                   <Search className="w-4 h-4 mr-2" />
-                  검색
+                  {t('search.searchButton')}
                 </>
               )}
             </Button>
@@ -325,10 +333,10 @@ export default function SearchPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-green-500" />
-                검색 결과
+                {t('search.results')}
               </CardTitle>
               <CardDescription className="text-gray-500 dark:text-gray-300">
-                {results.length}개의 결과를 찾았습니다
+                Found {results.length} results
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -338,10 +346,10 @@ export default function SearchPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">
-                          결과 {index + 1}
+                          Result {index + 1}
                         </Badge>
                         <Badge variant="outline">
-                          점수: {result.score.toFixed(4)}
+                          {t('search.relevanceScore', { score: result.score.toFixed(4) })}
                         </Badge>
                       </div>
                       <Button
@@ -351,11 +359,11 @@ export default function SearchPage() {
                       >
                         {expandedResults.has(index) ? (
                           <>
-                            접기 <ChevronUp className="w-4 h-4 ml-1" />
+                            Collapse <ChevronUp className="w-4 h-4 ml-1" />
                           </>
                         ) : (
                           <>
-                            펼치기 <ChevronDown className="w-4 h-4 ml-1" />
+                            Expand <ChevronDown className="w-4 h-4 ml-1" />
                           </>
                         )}
                       </Button>
@@ -364,7 +372,7 @@ export default function SearchPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">내용:</h4>
+                        <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">Content:</h4>
                         <div 
                           className={`text-gray-900 dark:text-gray-100 max-w-none break-words overflow-wrap-anywhere word-break overflow-hidden prose prose-sm dark:prose-invert ${!expandedResults.has(index) ? 'line-clamp-3' : ''}`} 
                           style={{ wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}
@@ -380,7 +388,7 @@ export default function SearchPage() {
                         <>
                           {result.metadata && Object.keys(result.metadata).length > 0 && (
                             <div>
-                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">메타데이터:</h4>
+                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">{t('collections.table.metadata')}:</h4>
                               <pre className="text-xs bg-gray-50 dark:bg-gray-800 dark:text-gray-200 p-3 rounded whitespace-pre-wrap break-words overflow-hidden" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
                                 {JSON.stringify(result.metadata, null, 2)}
                               </pre>
@@ -388,7 +396,7 @@ export default function SearchPage() {
                           )}
                           
                           <div>
-                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-1">문서 ID:</h4>
+                            <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-1">Document ID:</h4>
                             <code className="text-xs bg-gray-100 dark:bg-gray-800 dark:text-gray-200 px-2 py-1 rounded">
                               {result.id}
                             </code>

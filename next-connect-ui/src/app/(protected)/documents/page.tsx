@@ -29,9 +29,11 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { UploadDocumentModal } from '@/components/modals/upload-document-modal'
 import { Collection } from '@/types/collection'
 import { Document, DocumentGroup } from '@/types/document'
+import { useTranslation } from '@/hooks/use-translation'
 
 
 export default function DocumentsPage() {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<Collection[]>([])
   const [selectedCollection, setSelectedCollection] = useState<string>('')
   const [documents, setDocuments] = useState<Document[]>([])
@@ -67,8 +69,8 @@ export default function DocumentsPage() {
       const response = await fetch('/api/collections')
       const res = await response.json()
       if (!res.success) {
-        toast.error("컬렉션 오류", {
-          description: "컬렉션 조회 실패"
+        toast.error(t('common.error'), {
+          description: t('collections.messages.fetchError')
         })
         setCollections([])
         return
@@ -82,11 +84,11 @@ export default function DocumentsPage() {
       }
     } catch (error) {
       console.error('Failed to fetch collections:', error)
-      toast.error("네트워크 오류", {
-        description: "컬렉션을 불러올 수 없습니다"
+      toast.error(t('common.error'), {
+        description: t('collections.messages.fetchError')
       })
     }
-  }, [selectedCollection])
+  }, [t, selectedCollection])
 
   const fetchDocuments = useCallback(async () => {
     if (!selectedCollection) return
@@ -106,8 +108,8 @@ export default function DocumentsPage() {
         const res = await response.json()
         
         if (!res.success) {
-          toast.error("문서 오류", {
-            description: "문서 조회 실패"
+          toast.error(t('common.error'), {
+            description: t('documents.messages.fetchError')
           })
           break
         }
@@ -155,14 +157,14 @@ export default function DocumentsPage() {
 
     } catch (error) {
       console.error('Failed to fetch documents:', error)
-      toast.error("네트워크 오류", {
-        description: "문서를 불러올 수 없습니다"
+      toast.error(t('common.error'), {
+        description: t('documents.messages.fetchError')
       })
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [selectedCollection])
+  }, [selectedCollection, t])
 
   useEffect(() => {
     fetchCollections()
@@ -206,14 +208,14 @@ export default function DocumentsPage() {
     setSelectedChunks([])
 
     if (deletedCount > 0) {
-      toast.success(`${deletedCount}개의 ${activeTab === 'documents' ? '문서' : '청크'}가 성공적으로 삭제되었습니다.`)
+      toast.success(t('documents.messages.deleteSuccess'))
     }
     if (failedCount > 0) {
-      toast.error(`${failedCount}개의 ${activeTab === 'documents' ? '문서' : '청크'} 삭제에 실패했습니다.`)
+      toast.error(t('documents.messages.deleteError'))
     }
 
     fetchDocuments()
-  }, [selectedDocuments, selectedChunks, activeTab, selectedCollection, fetchDocuments])
+  }, [selectedDocuments, selectedChunks, activeTab, selectedCollection, fetchDocuments, t])
 
   const toggleDocumentSelection = (file_id: string) => {
     setSelectedDocuments(prev => 
@@ -325,9 +327,9 @@ export default function DocumentsPage() {
         <div className="rounded-full bg-green-50 dark:bg-green-900/20 p-6 mb-4">
           <FileText className="h-12 w-12 text-green-500" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">문서가 없습니다</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('documents.noDocuments')}</h3>
         <p className="text-gray-500 dark:text-gray-300 text-center mb-6 max-w-sm">
-          첫 번째 문서를 업로드하여 컬렉션을 구축해보세요.
+          {t('documents.noDocumentsDescription')}
         </p>
         <Button 
           onClick={() => setShowUploadModal(true)}
@@ -335,7 +337,7 @@ export default function DocumentsPage() {
           className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
         >
           <Upload className="w-4 h-4 mr-2" />
-          첫 문서 업로드
+          {t('documents.uploadFirstDocument')}
         </Button>
       </CardContent>
     </Card>
@@ -348,16 +350,16 @@ export default function DocumentsPage() {
         <div className="rounded-full bg-green-50 dark:bg-green-900/20 p-8 mb-6">
           <File className="h-16 w-16 text-green-500" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">문서가 없습니다</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">{t('documents.noDocuments')}</h3>
         <p className="text-gray-500 dark:text-gray-300 text-center mb-8 max-w-md">
-          선택한 컬렉션에 문서가 없습니다. 문서를 업로드하여 시작해보세요.
+          {t('documents.noDocumentsDescription')}
         </p>
         <Button 
           onClick={() => setShowUploadModal(true)}
           className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl transition-all duration-200"
         >
           <Upload className="w-5 h-5 mr-2" />
-          문서 업로드하기
+          {t('documents.uploadDocument')}
         </Button>
       </div>
     </div>
@@ -370,16 +372,16 @@ export default function DocumentsPage() {
         <div className="rounded-full bg-purple-50 dark:bg-purple-900/20 p-8 mb-6">
           <Archive className="h-16 w-16 text-purple-500" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">청크가 없습니다</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">{t('collections.stats.chunks')}</h3>
         <p className="text-gray-500 dark:text-gray-300 text-center mb-8 max-w-md">
-          선택한 컬렉션에 청크가 없습니다. 문서를 업로드하면 자동으로 청크가 생성됩니다.
+          {t('documents.noDocumentsDescription')}
         </p>
         <Button 
           onClick={() => setShowUploadModal(true)}
           className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg hover:shadow-xl transition-all duration-200"
         >
           <Upload className="w-5 h-5 mr-2" />
-          문서 업로드하기
+          {t('documents.uploadDocument')}
         </Button>
       </div>
     </div>
@@ -393,14 +395,14 @@ export default function DocumentsPage() {
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <FileText className="h-8 w-8 text-green-500" />
-              문서 관리
+              {t('documents.title')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">문서를 업로드하고 관리하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">{t('documents.description')}</p>
           </div>
           <div className="flex items-center gap-3">
             <Select value={selectedCollection} onValueChange={setSelectedCollection}>
               <SelectTrigger className="w-64">
-                <SelectValue placeholder="컬렉션 선택" />
+                <SelectValue placeholder={t('documents.selectCollection')} />
               </SelectTrigger>
               <SelectContent>
                 {collections.map((collection) => (
@@ -418,7 +420,7 @@ export default function DocumentsPage() {
               className="flex items-center gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              새로고침
+              {t('common.refresh')}
             </Button>
             <Button 
               onClick={() => setShowUploadModal(true)}
@@ -427,7 +429,7 @@ export default function DocumentsPage() {
               className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <Upload className="w-4 h-4 mr-2" />
-              문서 업로드
+              {t('documents.uploadDocument')}
             </Button>
           </div>
         </div>
@@ -447,17 +449,17 @@ export default function DocumentsPage() {
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">문서</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{t('collections.stats.documents')}</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalDocuments}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Archive className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">청크</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{t('collections.stats.chunks')}</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalChunks}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">문자</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Characters</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">{totalCharacters.toLocaleString()}</span>
                   </div>
                 </div>
@@ -471,14 +473,14 @@ export default function DocumentsPage() {
                   <div className="flex flex-col items-center gap-2">
                     <CardTitle className="flex items-center gap-2">
                       <BookOpen className="h-5 w-5 text-green-500" />
-                      문서 및 청크 관리
+                      {t('documents.title')}
                     </CardTitle>
                     <CardDescription>
                       {((activeTab === 'documents' ? selectedDocuments : selectedChunks).length > 0) 
-                        ? `${(activeTab === 'documents' ? selectedDocuments : selectedChunks).length}개 선택됨` 
+                        ? t('common.selected', { count: (activeTab === 'documents' ? selectedDocuments : selectedChunks).length })
                         : activeTab === 'documents' 
-                          ? `총 ${filteredDocumentGroups.length}개의 문서`
-                          : `${filteredDocuments.length}/${documents.length}개의 청크`}
+                          ? t('common.total', { count: filteredDocumentGroups.length })
+                          : `${filteredDocuments.length}/${documents.length} ${t('collections.stats.chunks')}`}
                     </CardDescription>
                   </div>
                   
@@ -487,18 +489,18 @@ export default function DocumentsPage() {
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" size="sm" className="flex items-center gap-2">
                           <Trash2 className="w-4 h-4" />
-                          선택 항목 삭제
+                          {t('collections.deleteConfirm.deleteSelected')}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>삭제 확인</AlertDialogTitle>
+                          <AlertDialogTitle>{t('documents.deleteConfirm.title')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            정말로 선택한 {activeTab === 'documents' ? '문서' : '청크'}를 삭제하시겠습니까? 이 작업은 복구할 수 없습니다.
+                            {t('documents.deleteConfirm.description', { fileName: activeTab === 'documents' ? t('collections.stats.documents') : t('collections.stats.chunks') })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
+                          <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleDeleteSelected}
                             disabled={deleting}
@@ -507,10 +509,10 @@ export default function DocumentsPage() {
                             {deleting ? (
                               <>
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                삭제 중...
+                                {t('collections.deleteConfirm.deleting')}
                               </>
                             ) : (
-                              '삭제'
+                              t('common.delete')
                             )}
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -524,11 +526,11 @@ export default function DocumentsPage() {
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="documents" className="flex items-center gap-2">
                       <File className="w-4 h-4" />
-                      문서
+                      {t('collections.stats.documents')}
                     </TabsTrigger>
                     <TabsTrigger value="chunks" className="flex items-center gap-2">
                       <Archive className="w-4 h-4" />
-                      청크
+                      {t('collections.stats.chunks')}
                     </TabsTrigger>
                   </TabsList>
 
@@ -559,16 +561,16 @@ export default function DocumentsPage() {
                               />
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              소스
+                              Source
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              통계
+                              {t('collections.table.stats')}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               File ID
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              타임스탬프
+                              Timestamp
                             </th>
                           </tr>
                         </thead>
@@ -625,55 +627,55 @@ export default function DocumentsPage() {
                                           <div className="space-y-4">
                                             {/* 기본 정보 */}
                                             <div>
-                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">기본 정보</h4>
+                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">{t('collections.popover.basicInfo')}</h4>
                                               <div className="space-y-2 text-sm">
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500 dark:text-gray-400">파일 ID:</span>
+                                                  <span className="text-gray-500 dark:text-gray-400">File ID:</span>
                                                   <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                                                     {group.file_id}
                                                   </code>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500 dark:text-gray-400">총 청크 수:</span>
-                                                  <span className="font-medium">{group.chunks.length}개</span>
+                                                  <span className="text-gray-500 dark:text-gray-400">{t('collections.stats.chunks')}:</span>
+                                                  <span className="font-medium">{t('collections.stats.chunksCount', { count: group.chunks.length })}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500 dark:text-gray-400">총 문자 수:</span>
-                                                  <span className="font-medium">{group.total_chars.toLocaleString()}자</span>
+                                                  <span className="text-gray-500 dark:text-gray-400">Characters:</span>
+                                                  <span className="font-medium">{group.total_chars.toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                  <span className="text-gray-500 dark:text-gray-400">생성일:</span>
-                                                  <span>{group.timestamp !== 'N/A' ? new Date(group.timestamp).toLocaleString('ko-KR') : 'N/A'}</span>
+                                                  <span className="text-gray-500 dark:text-gray-400">Created:</span>
+                                                  <span>{group.timestamp !== 'N/A' ? new Date(group.timestamp).toLocaleString() : 'N/A'}</span>
                                                 </div>
                                               </div>
                                             </div>
 
                                             {/* 통계 정보 */}
                                             <div>
-                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">통계</h4>
+                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">{t('collections.popover.statistics')}</h4>
                                               <div className="grid grid-cols-2 gap-3">
                                                 <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
                                                   <div className="flex items-center gap-2 mb-1">
                                                     <Archive className="h-4 w-4 text-green-500" />
-                                                    <span className="text-sm font-medium text-green-700">청크</span>
+                                                    <span className="text-sm font-medium text-green-700">{t('collections.stats.chunks')}</span>
                                                   </div>
                                                   <div className="text-lg font-bold text-green-900 dark:text-green-100">
                                                     {group.chunks.length}
                                                   </div>
                                                   <div className="text-xs text-green-600">
-                                                    평균 {Math.round(group.total_chars / group.chunks.length)}자/청크
+                                                    Avg {Math.round(group.total_chars / group.chunks.length)} chars/chunk
                                                   </div>
                                                 </div>
                                                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                                                   <div className="flex items-center gap-2 mb-1">
                                                     <BookOpen className="h-4 w-4 text-blue-500" />
-                                                    <span className="text-sm font-medium text-blue-700">문자</span>
+                                                    <span className="text-sm font-medium text-blue-700">Characters</span>
                                                   </div>
                                                   <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
                                                     {group.total_chars.toLocaleString()}
                                                   </div>
                                                   <div className="text-xs text-blue-600">
-                                                    총 문자 수
+                                                    Total characters
                                                   </div>
                                                 </div>
                                               </div>
@@ -681,7 +683,7 @@ export default function DocumentsPage() {
 
                                             {/* 청크 목록 */}
                                             <div>
-                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">청크 목록 ({group.chunks.length}개)</h4>
+                                              <h4 className="font-medium text-sm text-gray-600 dark:text-gray-400 mb-2">Chunk List ({group.chunks.length})</h4>
                                               <ScrollArea className="h-40 w-full rounded border">
                                                 <div className="p-2 space-y-2">
                                                   {group.chunks.map((chunk, index) => (
@@ -696,7 +698,7 @@ export default function DocumentsPage() {
                                                         {chunk.content.slice(0, 100)}{chunk.content.length > 100 ? '...' : ''}
                                                       </p>
                                                       <div className="text-gray-500 dark:text-gray-400 mt-1">
-                                                        {chunk.content.length}자
+                                                        {chunk.content.length} chars
                                                       </div>
                                                     </div>
                                                   ))}
@@ -714,10 +716,10 @@ export default function DocumentsPage() {
                                 <div className="flex items-center space-x-2">
                                   <Badge variant="secondary" className="text-xs">
                                     <Archive className="w-3 h-3 mr-1" />
-                                    {group.chunks.length} 청크
+                                    {t('collections.stats.chunksCount', { count: group.chunks.length })}
                                   </Badge>
                                   <Badge variant="outline" className="text-xs">
-                                    {group.total_chars.toLocaleString()} 문자
+                                    {group.total_chars.toLocaleString()} chars
                                   </Badge>
                                 </div>
                               </td>
@@ -741,7 +743,7 @@ export default function DocumentsPage() {
                       {totalPages > 1 && (
                         <div className="flex items-center justify-between px-4 py-3 border-t">
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            페이지 {currentPage} / {totalPages} (총 {filteredDocumentGroups.length}개 문서)
+                            Page {currentPage} / {totalPages} ({t('common.total', { count: filteredDocumentGroups.length })})
                           </div>
                           <div className="flex items-center gap-2">
                             <Button
@@ -751,7 +753,7 @@ export default function DocumentsPage() {
                               disabled={currentPage === 1}
                             >
                               <ChevronLeft className="h-4 w-4" />
-                              이전
+                              Previous
                             </Button>
                             
                             <div className="flex items-center gap-1">
@@ -789,7 +791,7 @@ export default function DocumentsPage() {
                               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                               disabled={currentPage === totalPages}
                             >
-                              다음
+                              Next
                               <ChevronRight className="h-4 w-4" />
                             </Button>
                           </div>
@@ -802,7 +804,7 @@ export default function DocumentsPage() {
                     {availableSources.length > 1 && (
                       <div className="mb-4 flex items-center gap-2">
                         <Filter className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">소스 필터:</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Source Filter:</span>
                         <Select 
                           value={selectedSources.length === availableSources.length ? 'all' : selectedSources[0] || ''}
                           onValueChange={(value) => {
@@ -816,14 +818,14 @@ export default function DocumentsPage() {
                           <SelectTrigger className="w-64">
                             <SelectValue>
                               {selectedSources.length === availableSources.length 
-                                ? '모든 소스' 
+                                ? 'All Sources' 
                                 : selectedSources.length === 1 
                                   ? selectedSources[0] 
-                                  : `${selectedSources.length}개 소스 선택됨`}
+                                  : `${selectedSources.length} sources selected`}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">모든 소스</SelectItem>
+                            <SelectItem value="all">All Sources</SelectItem>
                             {availableSources.map((source) => (
                               <SelectItem key={source} value={source}>
                                 {source}
@@ -863,16 +865,16 @@ export default function DocumentsPage() {
                               ID
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              내용 미리보기
+                              Content Preview
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              문자 수
+                              Characters
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              소스
+                              Source
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              타임스탬프
+                              Timestamp
                             </th>
                           </tr>
                         </thead>
@@ -915,10 +917,10 @@ export default function DocumentsPage() {
                                   <PopoverContent className="w-[700px] p-0" align="start">
                                     <div className="p-4">
                                       <div className="flex items-center justify-between mb-4">
-                                        <h4 className="font-semibold text-sm dark:text-gray-100">청크 상세 정보</h4>
+                                        <h4 className="font-semibold text-sm dark:text-gray-100">Chunk Details</h4>
                                         <div className="flex items-center gap-2">
                                           <Badge variant="secondary" className="text-xs">
-                                            {doc.content.length} 문자
+                                            {doc.content.length} chars
                                           </Badge>
                                           <Button
                                             variant="ghost"
@@ -933,8 +935,8 @@ export default function DocumentsPage() {
                                       
                                       <Tabs defaultValue="content" className="w-full">
                                         <TabsList className="grid w-full grid-cols-2">
-                                          <TabsTrigger value="content">내용</TabsTrigger>
-                                          <TabsTrigger value="metadata">메타데이터</TabsTrigger>
+                                          <TabsTrigger value="content">Content</TabsTrigger>
+                                          <TabsTrigger value="metadata">{t('collections.table.metadata')}</TabsTrigger>
                                         </TabsList>
                                         
                                         <TabsContent value="content" className="mt-4">
@@ -949,14 +951,14 @@ export default function DocumentsPage() {
                                             <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 border dark:border-gray-700">
                                               <div className="space-y-2">
                                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                                                  <span className="font-medium">문서 ID:</span>
+                                                  <span className="font-medium">Document ID:</span>
                                                   <code className="bg-white dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-700 dark:text-gray-300 border dark:border-gray-600 text-xs">
                                                     {doc.id}
                                                   </code>
                                                 </div>
                                                 {doc.metadata?.file_id && (
                                                   <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                                                    <span className="font-medium">파일 ID:</span>
+                                                    <span className="font-medium">File ID:</span>
                                                     <code className="bg-white dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-700 dark:text-gray-300 border dark:border-gray-600 text-xs">
                                                       {doc.metadata.file_id}
                                                     </code>
@@ -964,7 +966,7 @@ export default function DocumentsPage() {
                                                 )}
                                                 {doc.metadata?.source && (
                                                   <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                                                    <span className="font-medium">소스:</span>
+                                                    <span className="font-medium">Source:</span>
                                                     <span className="text-gray-700 dark:text-gray-300">{doc.metadata.source}</span>
                                                   </div>
                                                 )}
@@ -978,7 +980,7 @@ export default function DocumentsPage() {
                                             <div className="space-y-3">
                                               <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-4 space-y-3">
                                                 <div className="grid grid-cols-[140px_1fr] gap-3">
-                                                  <span className="font-medium text-sm text-gray-600 dark:text-gray-300">문서 ID:</span>
+                                                  <span className="font-medium text-sm text-gray-600 dark:text-gray-300">Document ID:</span>
                                                   <code className="bg-white px-2 py-1 rounded font-mono text-xs text-gray-700 border">
                                                     {doc.id}
                                                   </code>
@@ -998,7 +1000,7 @@ export default function DocumentsPage() {
                                                           : key === 'timestamp' && typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)
                                                           ? (
                                                             <span className="text-gray-700 dark:text-gray-300">
-                                                              {new Date(value).toLocaleString('ko-KR')}
+                                                              {new Date(value).toLocaleString()}
                                                             </span>
                                                           )
                                                           : <span className="break-all">{String(value)}</span>
@@ -1008,7 +1010,7 @@ export default function DocumentsPage() {
                                                   ))
                                                 ) : (
                                                   <div className="text-sm text-gray-400 dark:text-gray-400 italic text-center py-8">
-                                                    추가 메타데이터가 없습니다
+                                                    No additional metadata
                                                   </div>
                                                 )}
                                               </div>
@@ -1044,7 +1046,7 @@ export default function DocumentsPage() {
                       {totalPages > 1 && (
                         <div className="flex items-center justify-between px-4 py-3 border-t">
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            페이지 {currentPage} / {totalPages} (총 {filteredDocuments.length}개 청크)
+                            Page {currentPage} / {totalPages} ({t('common.total', { count: filteredDocuments.length })})
                           </div>
                           <div className="flex items-center gap-2">
                             <Button
@@ -1054,7 +1056,7 @@ export default function DocumentsPage() {
                               disabled={currentPage === 1}
                             >
                               <ChevronLeft className="h-4 w-4" />
-                              이전
+                              Previous
                             </Button>
                             
                             <div className="flex items-center gap-1">
@@ -1092,7 +1094,7 @@ export default function DocumentsPage() {
                               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                               disabled={currentPage === totalPages}
                             >
-                              다음
+                              Next
                               <ChevronRight className="h-4 w-4" />
                             </Button>
                           </div>

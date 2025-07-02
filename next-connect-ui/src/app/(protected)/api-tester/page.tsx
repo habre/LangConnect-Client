@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { APIEndpoint, APIResponse } from '@/types/api-tester'
+import { useTranslation } from '@/hooks/use-translation'
 
 
 const API_ENDPOINTS = {
@@ -106,6 +107,7 @@ const API_ENDPOINTS = {
 }
 
 export default function APITesterPage() {
+  const { t } = useTranslation()
   const { data: session } = useSession()
   const [selectedGroup, setSelectedGroup] = useState<string>('health')
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>('')
@@ -246,21 +248,21 @@ export default function APITesterPage() {
     if (!endpoint) return
 
     if (endpoint.params?.includes('collection_id') && !collectionId) {
-      toast.error('Collection ID is required')
+      toast.error(t('common.collectionIdRequired'))
       return
     }
     if (endpoint.params?.includes('document_id') && !documentId) {
-      toast.error('Document ID is required')
+      toast.error(t('apiTester.documentIdRequired'))
       return
     }
     if (endpoint.id === 'search-documents' && !searchQuery) {
-      toast.error('Search query is required')
+      toast.error(t('apiTester.searchQueryRequired'))
       return
     }
 
     // For create-documents, show message instead of sending request
     if (endpoint.id === 'create-documents') {
-      toast.info('문서 업로드는 문서 페이지에서 문서 업로드를 사용하세요')
+      toast.info(t('apiTester.useDocumentUpload'))
       return
     }
 
@@ -307,9 +309,9 @@ export default function APITesterPage() {
       setResponse(apiResponse)
 
       if (response.ok) {
-        toast.success('Request completed successfully')
+        toast.success(t('common.success'))
       } else {
-        toast.error(`Request failed (${response.status})`)
+        toast.error(`${t('common.error')} (${response.status})`)
       }
     } catch (error) {
       console.error('Request error:', error)
@@ -318,7 +320,7 @@ export default function APITesterPage() {
         status: 0,
         error: error instanceof Error ? error.message : 'Network error'
       })
-      toast.error('Request failed')
+      toast.error(t('common.error'))
     } finally {
       setLoading(false)
     }
@@ -333,9 +335,9 @@ export default function APITesterPage() {
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-3">
               <Code className="h-8 w-8 text-blue-500" />
-              API 테스터
+              {t('apiTester.title')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">API 엔드포인트를 테스트하고 응답을 확인하세요</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">{t('apiTester.description')}</p>
           </div>
         </div>
 
@@ -344,16 +346,16 @@ export default function APITesterPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-blue-500" />
-                요청 설정
+                Request Settings
               </CardTitle>
               <CardDescription className="text-gray-500 dark:text-gray-300">
-                테스트할 API 엔드포인트와 매개변수를 설정하세요
+                Configure API endpoint and parameters
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="group">엔드포인트 그룹</Label>
+                  <Label htmlFor="group">{t('apiTester.endpoint')} Group</Label>
                   <Select value={selectedGroup} onValueChange={setSelectedGroup}>
                     <SelectTrigger>
                       <SelectValue />
@@ -367,7 +369,7 @@ export default function APITesterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endpoint">엔드포인트</Label>
+                  <Label htmlFor="endpoint">{t('apiTester.endpoint')}</Label>
                   <Select value={selectedEndpoint} onValueChange={setSelectedEndpoint}>
                     <SelectTrigger>
                       <SelectValue />
@@ -402,7 +404,7 @@ export default function APITesterPage() {
                   <Label htmlFor="collectionId">Collection ID</Label>
                   <Input
                     id="collectionId"
-                    placeholder="컬렉션 ID를 입력하세요."
+                    placeholder={t('apiTester.collectionIdPlaceholder')}
                     value={collectionId}
                     onChange={(e) => setCollectionId(e.target.value)}
                   />
@@ -414,7 +416,7 @@ export default function APITesterPage() {
                   <Label htmlFor="documentId">Document ID</Label>
                   <Input
                     id="documentId"
-                    placeholder="문서 ID를 입력하세요."
+                    placeholder={t('apiTester.documentIdPlaceholder')}
                     value={documentId}
                     onChange={(e) => setDocumentId(e.target.value)}
                   />
@@ -424,10 +426,10 @@ export default function APITesterPage() {
               {currentEndpoint?.id === 'search-documents' && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="searchQuery">검색어</Label>
+                    <Label htmlFor="searchQuery">{t('common.search')}</Label>
                     <Input
                       id="searchQuery"
-                      placeholder="검색어를 입력하세요."
+                      placeholder={t('search.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -435,7 +437,7 @@ export default function APITesterPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="searchType">검색 타입</Label>
+                      <Label htmlFor="searchType">{t('search.searchType')}</Label>
                       <Select value={searchType} onValueChange={setSearchType}>
                         <SelectTrigger>
                           <SelectValue />
@@ -449,7 +451,7 @@ export default function APITesterPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="searchLimit">결과 개수</Label>
+                      <Label htmlFor="searchLimit">Result Limit</Label>
                       <Select value={searchLimit.toString()} onValueChange={(value) => setSearchLimit(Number(value))}>
                         <SelectTrigger>
                           <SelectValue />
@@ -466,7 +468,7 @@ export default function APITesterPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="searchFilter">필터 (JSON)</Label>
+                    <Label htmlFor="searchFilter">Filter (JSON)</Label>
                     <Textarea
                       id="searchFilter"
                       placeholder='{"source": "example.pdf"}'
@@ -482,17 +484,17 @@ export default function APITesterPage() {
               {currentEndpoint?.id === 'create-collection' && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="collectionName">컬렉션 이름</Label>
+                    <Label htmlFor="collectionName">{t('collections.modal.nameLabel')}</Label>
                     <Input
                       id="collectionName"
-                      placeholder="컬렉션 이름을 입력하세요"
+                      placeholder={t('collections.modal.namePlaceholder')}
                       value={collectionName}
                       onChange={(e) => setCollectionName(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="metadata">메타데이터 (JSON)</Label>
+                    <Label htmlFor="metadata">{t('collections.table.metadata')} (JSON)</Label>
                     <Textarea
                       id="metadata"
                       placeholder='{"key": "value"}'
@@ -511,14 +513,14 @@ export default function APITesterPage() {
                     <Label htmlFor="createDocCollectionName">Collection Name</Label>
                     <Input
                       id="createDocCollectionName"
-                      placeholder="컬렉션 이름을 입력하세요"
+                      placeholder={t('collections.modal.namePlaceholder')}
                       value={createDocCollectionName}
                       onChange={(e) => setCreateDocCollectionName(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="createDocMetadata">메타데이터 (JSON)</Label>
+                    <Label htmlFor="createDocMetadata">{t('collections.table.metadata')} (JSON)</Label>
                     <Textarea
                       id="createDocMetadata"
                       placeholder='{}'
@@ -531,10 +533,10 @@ export default function APITesterPage() {
                   
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      ℹ️ 문서 생성은 문서 페이지에서 문서 업로드를 사용하세요
+                      ℹ️ {t('apiTester.useDocumentUpload')}
                     </p>
                     <Link href="/documents" className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium mt-2">
-                      문서 페이지로 이동 →
+                      {t('apiTester.goToDocuments')}
                     </Link>
                   </div>
                 </div>
@@ -543,17 +545,17 @@ export default function APITesterPage() {
               {currentEndpoint?.id === 'update-collection' && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="newCollectionName">새 컬렉션 이름 (선택사항)</Label>
+                    <Label htmlFor="newCollectionName">New Collection Name (Optional)</Label>
                     <Input
                       id="newCollectionName"
-                      placeholder="컬렉션 이름을 입력하세요"
+                      placeholder={t('collections.modal.namePlaceholder')}
                       value={newCollectionName}
                       onChange={(e) => setNewCollectionName(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="newMetadata">새 메타데이터 (JSON, 선택사항)</Label>
+                    <Label htmlFor="newMetadata">New {t('collections.table.metadata')} (JSON, Optional)</Label>
                     <Textarea
                       id="newMetadata"
                       placeholder='{"key": "value"}'
@@ -568,7 +570,7 @@ export default function APITesterPage() {
 
               {currentEndpoint?.body && currentEndpoint.id !== 'search-documents' && currentEndpoint.id !== 'update-collection' && currentEndpoint.id !== 'create-collection' && currentEndpoint.id !== 'create-documents' && (
                 <div className="space-y-2">
-                  <Label htmlFor="requestBody">요청 본문 (JSON)</Label>
+                  <Label htmlFor="requestBody">{t('apiTester.body')} (JSON)</Label>
                   <Textarea
                     id="requestBody"
                     placeholder={currentEndpoint.id === 'create-collection' ? 
@@ -590,12 +592,12 @@ export default function APITesterPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    요청 중...
+                    {t('common.loading')}
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    요청 전송
+                    {t('apiTester.sendRequest')}
                   </>
                 )}
               </Button>
@@ -612,7 +614,7 @@ export default function APITesterPage() {
                 ) : (
                   <Code className="h-5 w-5 text-gray-500" />
                 )}
-                응답 결과
+                {t('apiTester.response')}
               </CardTitle>
               <CardDescription className="text-gray-500 dark:text-gray-300">
                 {response ? (
@@ -620,10 +622,10 @@ export default function APITesterPage() {
                     <Badge variant={response.success ? 'default' : 'destructive'}>
                       {response.status || 'ERROR'}
                     </Badge>
-                    <span>{response.success ? '성공' : '실패'}</span>
+                    <span>{response.success ? t('common.success') : t('common.error')}</span>
                   </div>
                 ) : (
-                  'API 응답이 여기에 표시됩니다'
+                  t('apiTester.responsePlaceholder')
                 )}
               </CardDescription>
             </CardHeader>
@@ -632,7 +634,7 @@ export default function APITesterPage() {
                 <div className="space-y-4">
                   {response.success && response.data && (
                     <div>
-                      <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">응답 데이터:</h4>
+                      <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">Response Data:</h4>
                       <pre className="text-xs bg-gray-50 dark:bg-gray-800 dark:text-gray-200 p-4 rounded overflow-x-auto whitespace-pre-wrap">
                         {JSON.stringify(response.data, null, 2)}
                       </pre>
@@ -641,7 +643,7 @@ export default function APITesterPage() {
 
                   {!response.success && response.error && (
                     <div>
-                      <h4 className="font-medium text-sm text-red-600 dark:text-red-400 mb-2">오류:</h4>
+                      <h4 className="font-medium text-sm text-red-600 dark:text-red-400 mb-2">{t('common.error')}:</h4>
                       <pre className="text-xs bg-red-50 dark:bg-red-900/20 p-4 rounded overflow-x-auto text-red-700 dark:text-red-300">
                         {response.error}
                       </pre>
@@ -651,7 +653,7 @@ export default function APITesterPage() {
               ) : (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-300">
                   <Code className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-500" />
-                  <p className="dark:text-gray-300">요청을 전송하면 응답이 표시됩니다</p>
+                  <p className="dark:text-gray-300">{t('apiTester.sendRequestPlaceholder')}</p>
                 </div>
               )}
             </CardContent>

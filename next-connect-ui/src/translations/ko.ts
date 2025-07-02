@@ -134,7 +134,16 @@ export const ko = {
     sendRequest: '요청 보내기',
     response: '응답',
     responseTime: '응답 시간: {{time}}ms',
-    status: '상태'
+    status: '상태',
+    collectionIdRequired: '컬렉션 ID가 필요합니다',
+    documentIdRequired: '문서 ID가 필요합니다',
+    searchQueryRequired: '검색어를 입력하세요',
+    useDocumentUpload: '문서 페이지에서 업로드 기능을 사용하세요',
+    goToDocuments: '문서 페이지로 이동 →',
+    responsePlaceholder: 'API 응답이 여기에 표시됩니다',
+    sendRequestPlaceholder: '요청을 전송하면 응답이 표시됩니다',
+    collectionIdPlaceholder: '컬렉션 ID를 입력하세요',
+    documentIdPlaceholder: '문서 ID를 입력하세요'
   },
   auth: {
     signIn: '로그인',
@@ -157,5 +166,69 @@ export const ko = {
   language: {
     english: 'English',
     korean: '한국어'
+  },
+  main: {
+    title: '🔗 LangConnect 클라이언트',
+    subtitle: '<strong>LangConnect</strong>에 오신 것을 환영합니다.',
+    description: 'LangChain과 PostgreSQL로 구동되는 강력한 문서 관리 및 검색 시스템입니다.',
+    keyFeatures: '🚀 주요 기능',
+    keyFeaturesDescription: '이 애플리케이션은 고급 검색 기능을 갖춘 문서 관리를 위한 포괄적인 인터페이스를 제공합니다:',
+    collectionManagement: {
+      title: '컬렉션 관리',
+      features: [
+        '문서 컬렉션 생성 및 관리',
+        '컬렉션 통계 보기',
+        '컬렉션 일괄 삭제'
+      ],
+      goTo: '컬렉션으로 이동'
+    },
+    documentManagement: {
+      title: '문서 관리',
+      features: [
+        '여러 문서 업로드 (PDF, TXT, MD, DOCX)',
+        '문서 청크 보기 및 관리',
+        '개별 청크 또는 전체 문서 삭제'
+      ],
+      goTo: '문서로 이동'
+    },
+    search: {
+      title: '검색',
+      features: [
+        '<strong>시맨틱 검색</strong>: AI 기반 유사도 검색',
+        '<strong>키워드 검색</strong>: 전통적인 전문 검색',
+        '<strong>하이브리드 검색</strong>: 두 가지 접근법의 장점 결합',
+        '고급 메타데이터 필터링'
+      ],
+      goTo: '검색으로 이동'
+    },
+    apiTester: {
+      title: 'API 테스터',
+      features: [
+        '모든 API 엔드포인트 직접 테스트',
+        'API 기능 탐색',
+        '통합 개발 및 디버깅'
+      ],
+      goTo: 'API 테스터로 이동'
+    },
+    about: {
+      title: '📌 이 프로젝트에 대해',
+      description: '<strong>LangConnect</strong>는 다음의 기술들을 결합한 오픈소스 프로젝트입니다:',
+      techStack: [
+        '<strong>LangChain</strong> - 문서 처리 및 임베딩',
+        '<strong>PostgreSQL</strong> - pgvector 확장을 통한 벡터 저장',
+        '<strong>FastAPI</strong> - 고성능 API 백엔드',
+        '<strong>Streamlit</strong> - 인터랙티브 사용자 인터페이스',
+        '<strong>Next.js</strong> - 인터랙티브 사용자 인터페이스'
+      ],
+      ragReady: 'RAG (Retrieval-Augmented Generation) 애플리케이션 구축에 완벽합니다!',
+      links: {
+        title: '🔗 링크',
+        github: 'GitHub 저장소',
+        teddynote: 'TeddyNote LAB',
+        docs: '문서',
+        nextjsClient: 'Next.js 클라이언트 UI'
+      }
+    },
+    footer: 'Made with ❤️ by'
   }
 }

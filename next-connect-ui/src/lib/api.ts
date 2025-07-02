@@ -39,8 +39,18 @@ export async function fetchAPI<T = any>(endpoint: string, options: FetchOptions 
     if (endpoint === '/auth/signup' && error instanceof AxiosError && error.response?.status === 400) {
       return Promise.reject(error.response.data)
     }
-    if (axios.isAxiosError(error) && error.response?.data?.message) {
-      return Promise.reject(new Error(error.response.data.message))
+    if (axios.isAxiosError(error)) {
+      console.error(`API Error for ${endpoint}:`, {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      })
+      if (error.response?.data?.message) {
+        return Promise.reject(new Error(error.response.data.message))
+      }
+      if (error.response?.data?.detail) {
+        return Promise.reject(new Error(error.response.data.detail))
+      }
     }
     return Promise.reject(new Error("서버 오류가 발생했습니다."))
   }

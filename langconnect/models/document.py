@@ -1,7 +1,5 @@
-from typing import Any, Literal
-
-from pydantic import BaseModel
-
+from typing import Any, Literal, Optional
+from pydantic import BaseModel, Field
 
 class DocumentCreate(BaseModel):
     content: str | None = None
@@ -34,3 +32,7 @@ class SearchResult(BaseModel):
     page_content: str
     metadata: dict[str, Any] | None = None
     score: float
+
+class DocumentDelete(BaseModel):
+    document_ids: Optional[list[str]] = Field(None, description="List of document IDs to delete.")
+    file_ids: Optional[list[str]] = Field(None, description="List of file IDs to delete all associated documents.")

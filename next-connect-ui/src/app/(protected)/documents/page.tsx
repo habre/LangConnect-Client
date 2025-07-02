@@ -186,36 +186,46 @@ export default function DocumentsPage() {
     if (toDelete.length === 0) return
 
     setDeleting(true)
-    let deletedCount = 0
-    let failedCount = 0
+    
+    const payload: any = {}
+    if (activeTab === 'documents') {
+      // For documents tab, we delete by file_ids
+      payload.file_ids = toDelete
+    } else {
+      // For chunks tab, we delete by document_ids (individual chunk IDs)
+      payload.document_ids = toDelete
+    }
 
-    for (const id of toDelete) {
-      try {
-        const deleteBy = activeTab === 'documents' ? 'file_id' : 'document_id'
-        await fetch(`/api/collections/${selectedCollection}/documents/${id}?delete_by=${deleteBy}`, {
-          method: 'DELETE',
-        })
-        deletedCount++
-      } catch (error) {
-        failedCount++
-        console.error(`Failed to delete ${activeTab === 'documents' ? 'document' : 'chunk'} ${id}:`, error)
+    try {
+      const response = await fetch(`/api/collections/${selectedCollection}/documents`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+      
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast.success(t('documents.messages.deleteSuccess', { count: result.deleted_count || toDelete.length }))
+      } else {
+        throw new Error(result.message || 'Failed to delete items.')
       }
-    }
 
-    setDeleting(false)
-    setShowDeleteConfirm(false)
-    setSelectedDocuments([])
-    setSelectedChunks([])
-
-    if (deletedCount > 0) {
-      toast.success(t('documents.messages.deleteSuccess'))
+    } catch (error: any) {
+      console.error(`Failed to delete ${activeTab}:`, error)
+      toast.error(t('documents.messages.deleteError'), {
+        description: error.message
+      })
+    } finally {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+      setSelectedDocuments([])
+      setSelectedChunks([])
+      fetchDocuments()
     }
-    if (failedCount > 0) {
-      toast.error(t('documents.messages.deleteError'))
-    }
-
-    fetchDocuments()
-  }, [selectedDocuments, selectedChunks, activeTab, selectedCollection, fetchDocuments, t])
+  }, [activeTab, selectedChunks, selectedDocuments, selectedCollection, fetchDocuments, t])
 
   const toggleDocumentSelection = (file_id: string) => {
     setSelectedDocuments(prev => 

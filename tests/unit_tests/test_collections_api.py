@@ -62,10 +62,10 @@ async def test_create_and_get_collection() -> None:
         }
 
 
-async def test_create_and_list_collection() -> None:
-    """Test creating and listing a collection."""
+async def test_create_and_list_collection_with_stats() -> None:
+    """Test creating and listing a collection with stats."""
     async with get_async_test_client() as client:
-        payload = {"name": "test_collection", "metadata": {"purpose": "unit-test"}}
+        payload = {"name": "test_collection_with_stats", "metadata": {"purpose": "unit-test"}}
         response = await client.post(
             "/collections", json=payload, headers=USER_1_HEADERS
         )
@@ -73,15 +73,22 @@ async def test_create_and_list_collection() -> None:
             f"Failed with error message: {response.text}"
         )
         data = response.json()
-        assert data["name"] == "test_collection"
+        assert data["name"] == "test_collection_with_stats"
         assert isinstance(UUID(data["uuid"]), UUID)
 
-        # List collections
+        # List collections and check for stats
         list_response = await client.get("/collections", headers=USER_1_HEADERS)
         assert list_response.status_code == 200
         collections = list_response.json()
         assert len(collections) > 0
-        assert any(c["name"] == "test_collection" for c in collections)
+        
+        test_collection = next((c for c in collections if c["name"] == "test_collection_with_stats"), None)
+        assert test_collection is not None
+        assert "document_count" in test_collection
+        assert "chunk_count" in test_collection
+        assert test_collection["document_count"] == 0
+        assert test_collection["chunk_count"] == 0
+
 
 
 async def test_create_collections_with_identical_names() -> None:

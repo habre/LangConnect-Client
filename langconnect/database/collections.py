@@ -57,10 +57,16 @@ class CollectionsManager:
         async with get_db_connection() as conn:
             records = await conn.fetch(
                 """
-                SELECT uuid, cmetadata
-                FROM langchain_pg_collection
-                WHERE cmetadata->>'owner_id' = $1
-                ORDER BY cmetadata->>'name';
+                SELECT 
+                    c.uuid, 
+                    c.cmetadata,
+                    COUNT(DISTINCT e.cmetadata->>'file_id') AS document_count,
+                    COUNT(e.id) AS chunk_count
+                FROM langchain_pg_collection c
+                LEFT JOIN langchain_pg_embedding e ON c.uuid = e.collection_id
+                WHERE c.cmetadata->>'owner_id' = $1
+                GROUP BY c.uuid
+                ORDER BY c.cmetadata->>'name';
                 """,
                 self.user_id,
             )
@@ -74,6 +80,8 @@ class CollectionsManager:
                     "uuid": str(r["uuid"]),
                     "name": name,
                     "metadata": metadata,
+                    "document_count": r["document_count"],
+                    "chunk_count": r["chunk_count"],
                 }
             )
         return result
@@ -348,6 +356,52 @@ class Collection:
             if deleted_count == 0:
                 await self._get_details_or_raise()
         return True
+
+    async def delete_many(
+        self,
+        *,
+        document_ids: Optional[list[str]] = None,
+        file_ids: Optional[list[str]] = None,
+    ) -> int:
+        """Delete multiple documents by a list of document IDs or file IDs."""
+        if not document_ids and not file_ids:
+            raise ValueError("Either document_ids or file_ids must be provided.")
+
+        deleted_count = 0
+        async with get_db_connection() as conn:
+            if document_ids:
+                result = await conn.execute(
+                    """
+                    DELETE FROM langchain_pg_embedding AS lpe
+                    USING langchain_pg_collection AS lpc
+                    WHERE lpe.collection_id = lpc.uuid
+                      AND lpc.uuid = $1
+                      AND lpc.cmetadata->>'owner_id' = $2
+                      AND lpe.id = ANY($3::text[])
+                    """,
+                    self.collection_id,
+                    self.user_id,
+                    document_ids,
+                )
+                deleted_count += int(result.split()[-1])
+
+            if file_ids:
+                result = await conn.execute(
+                    """
+                    DELETE FROM langchain_pg_embedding AS lpe
+                    USING langchain_pg_collection AS lpc
+                    WHERE lpe.collection_id = lpc.uuid
+                      AND lpc.uuid = $1
+                      AND lpc.cmetadata->>'owner_id' = $2
+                      AND lpe.cmetadata->>'file_id' = ANY($3::text[])
+                    """,
+                    self.collection_id,
+                    self.user_id,
+                    file_ids,
+                )
+                deleted_count += int(result.split()[-1])
+        
+        return deleted_count
 
     async def list(self, *, limit: int = 10, offset: int = 0) -> list[dict[str, Any]]:
         """List all document chunks in this collection."""

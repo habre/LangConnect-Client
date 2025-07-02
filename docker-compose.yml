@@ -60,6 +60,10 @@ services:
     build:
       context: ./next-connect-ui
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080
+        NEXTAUTH_URL: http://localhost:3000
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
     container_name: next-connect-ui
     restart: always
     depends_on:
@@ -72,6 +76,7 @@ services:
       API_URL: http://api:8080
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXT_PUBLIC_API_URL: http://localhost:8080
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_KEY: ${SUPABASE_KEY}
       SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}

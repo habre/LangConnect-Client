@@ -1,557 +1,268 @@
-# LangConnect-Client
+# LangConnect Client
 
 <div align="center">
-  <img src="./assets/langconnect-client.png" alt="LangConnect Client Main Interface" width="100%">
-  <p><em>Intuitive dashboard for managing your RAG system with real-time document processing and search capabilities</em></p>
-</div>
 
-LangConnect-Client is a comprehensive RAG (Retrieval-Augmented Generation) client application built with Streamlit. It provides a user-friendly interface for interacting with the LangConnect API, enabling document management and vector search capabilities powered by PostgreSQL with pgvector extension.
+![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)
+![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115.6+-009688?style=for-the-badge&logo=fastapi)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql)
 
-## 🎯 Key Features in Action
+**A Modern GUI Interface for Vector Database Management**
 
-### 📚 Collections Management
-<div align="center">
-  <img src="./assets/collections-list.png" alt="Collections Management Interface" width="90%">
-  <p><em>Manage your collections with instant deletion capabilities. Create and organize document collections with metadata support and view detailed statistics.</em></p>
-</div>
-
-### 📄 Document Management
-<div align="center">
-  <img src="./assets/document-list.png" alt="Document List Interface" width="90%">
-  <p><em>View and manage your documents with an intuitive interface. See document-level statistics including chunk counts and total characters, with multi-select deletion capabilities.</em></p>
-</div>
-
-<div align="center">
-  <img src="./assets/document-upload.png" alt="Document Upload Interface" width="90%">
-  <p><em>Upload multiple documents in various formats (PDF, TXT, MD, DOCX) with automatic metadata generation and customization options.</em></p>
-</div>
-
-### 🔍 Vector Search
-<div align="center">
-  <img src="./assets/vector-search.png" alt="Vector Search Interface" width="90%">
-  <p><em>Perform advanced searches with multiple search types (semantic, keyword, hybrid). Filter by metadata and view results with relevance scores and source information.</em></p>
-</div>
-
-### 🔬 Chunk Investigation
-<div align="center">
-  <img src="./assets/chunk-investigation.png" alt="Chunk Investigation Interface" width="90%">
-  <p><em>Deep dive into document chunks with powerful filtering capabilities. View detailed chunk information including content previews, character counts, and metadata.</em></p>
 </div>
 
 ## 📋 Table of Contents
 
-- [Features](#features)
+- [Overview](#overview)
+- [Main Features](#main-features)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Running with Docker](#running-with-docker)
-  - [Development Setup](#development-setup)
-- [API Documentation](#api-documentation)
-  - [Authentication](#authentication)
-  - [Collections](#collections)
-  - [Documents](#documents)
-  - [Search](#search)
-- [Streamlit Application](#streamlit-application)
-  - [Main Features](#main-features)
-  - [Pages Overview](#pages-overview)
-  - [Authentication Persistence](#authentication-persistence)
-- [MCP (Model Context Protocol) Server](#mcp-model-context-protocol-server)
-  - [Available Tools](#available-tools)
-  - [Configuration](#configuration)
-  - [Usage with Claude Desktop](#usage-with-claude-desktop)
+  - [Installation](#installation)
+  - [Running the Application](#running-the-application)
+- [MCP Integration](#mcp-integration)
 - [Environment Variables](#environment-variables)
-- [Testing](#testing)
-- [Security](#security)
+- [API Documentation](#api-documentation)
+- [Contributors](#contributors)
 - [License](#license)
 
-## Features
+## 🎯 Overview
 
-- **🚀 FastAPI-based REST API** with automatic documentation
-- **🔐 Supabase Authentication** for secure user management
-- **🐘 PostgreSQL with pgvector** for efficient vector storage and similarity search
-- **📄 Multi-format Document Support** (PDF, TXT, MD, DOCX)
-- **🔍 Advanced Search Capabilities**:
-  - Semantic search (vector similarity)
-  - Keyword search (full-text)
-  - Hybrid search (combination of both)
-  - Metadata filtering
-- **🎨 Streamlit Web Interface** for easy interaction
-- **🤖 MCP Server Integration** for AI assistant tools
-- **🐳 Docker Support** for easy deployment
+LangConnect Client is a modern, Next.js-based GUI interface for managing vector databases powered by PostgreSQL with pgvector extension. It provides an intuitive web interface for document management, vector search capabilities, and seamless integration with AI assistants through the Model Context Protocol (MCP).
 
-## Architecture
+## ✨ Main Features
+
+### 📚 **Collection Management**
+- Create, read, update, and delete document collections
+- Organize documents with custom metadata
+- Real-time statistics for documents and chunks
+- Bulk operations support
+
+### 📄 **Document Management**
+- Multi-format support (PDF, TXT, MD, DOCX, HTML)
+- Batch upload capabilities with drag-and-drop interface
+- Automatic text extraction and chunking
+- Document-level and chunk-level management
+- Metadata customization for enhanced searchability
+
+### 🔍 **Advanced Search Capabilities**
+- **Semantic Search**: Vector similarity search using OpenAI embeddings
+- **Keyword Search**: Traditional full-text search
+- **Hybrid Search**: Combines semantic and keyword search for best results
+- Metadata filtering with JSON support
+- Real-time search results with relevance scores
+
+### 🔐 **Authentication & Security**
+- Supabase integration for secure user authentication
+- JWT-based API access
+- Session persistence
+- Role-based access control
+
+### 🤖 **MCP (Model Context Protocol) Integration**
+- Direct integration with AI assistants (Claude Desktop, Cursor)
+- 9 comprehensive tools for document management
+- Both stdio and SSE transport support
+- Automated configuration generation
+
+### 🎨 **Modern UI/UX**
+- Responsive design with Tailwind CSS
+- Dark/Light theme support
+- Multi-language support (English, Korean)
+- Real-time updates and notifications
+- Interactive API testing interface
+
+## 🏗️ Architecture
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Streamlit UI  │────▶│  FastAPI Server  │────▶│   PostgreSQL    │
-│   (Frontend)    │     │  (Backend API)   │     │   + pgvector    │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
-                               │
-                               ▼
-                        ┌──────────────────┐
-                        │   Supabase Auth  │
-                        └──────────────────┘
+┌─────────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Next.js Frontend  │────▶│  FastAPI Backend │────▶│   PostgreSQL    │
+│   (Port 3000)       │     │  (Port 8080)     │     │   + pgvector    │
+└─────────────────────┘     └──────────────────┘     └─────────────────┘
+         │                           │
+         └───────────┬───────────────┘
+                     │
+              ┌──────▼──────────┐
+              │ Supabase Auth   │
+              └─────────────────┘
 ```
 
-## 🚀 Quick Start
-
-Get up and running in just 3 steps:
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/teddynote-lab/LangConnect-Client.git
-cd LangConnect-Client
-
-# 2. Copy environment variables and configure
-cp .env.example .env
-# Edit .env file to add your SUPABASE_URL and SUPABASE_KEY
-
-# 3. Start all services
-docker compose up -d
-```
-
-Once started, you can access:
-- 🎨 **Streamlit UI**: http://localhost:8501
-- 📚 **API Documentation**: http://localhost:8080/docs
-- 🔍 **Health Check**: http://localhost:8080/health
-
-To stop all services:
-```bash
-docker compose down
-```
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Docker and Docker Compose
-- Python 3.11 or higher
-- Supabase account (for authentication)
+- Node.js 20+ (for MCP inspector)
+- Python 3.11+ with UV package manager
+- Supabase account
 
-### Running with Docker
+### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/teddynote-lab/LangConnect-Client.git
-   cd LangConnect-Client
+   git clone https://github.com/your-username/langconnect.git
+   cd langconnect
    ```
 
-2. Create a `.env` file with your configuration:
-   ```bash
-   # Supabase Configuration
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_KEY=your-anon-key
-   
-   # Database Configuration
-   POSTGRES_HOST=postgres
-   POSTGRES_PORT=5432
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=postgres
-   POSTGRES_DB=postgres
-   
-   # Authentication
-   IS_TESTING=false  # Set to true to disable authentication
-   ```
-
-3. Start the services:
-   ```bash
-   docker-compose up -d
-   ```
-
-   This will start:
-   - PostgreSQL database with pgvector extension
-   - LangConnect API service on http://localhost:8080
-   - Streamlit UI on http://localhost:8501
-
-4. Access the services:
-   - API documentation: http://localhost:8080/docs
-   - Streamlit UI: http://localhost:8501
-   - Health check: http://localhost:8080/health
-
-### Development Setup
-
-For local development without Docker:
-
-1. **Create and activate virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure environment variables:**
+2. **Set up environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env file - for testing, set IS_TESTING=true
    ```
 
-4. **Setup local PostgreSQL (using Homebrew on macOS):**
-   ```bash
-   # Install PostgreSQL
-   brew install postgresql
-   brew services start postgresql
+3. **Configure Supabase**
    
-   # Create database
-   createdb langconnect_db
+   a. Create a new project at [supabase.com](https://supabase.com)
    
-   # Update .env with your local settings:
-   # POSTGRES_HOST=localhost
-   # POSTGRES_USER=your_username
-   # POSTGRES_PASSWORD=
-   # POSTGRES_DB=langconnect_db
+   b. Get your API credentials:
+      - Go to Project Settings → API
+      - Copy the `URL` and `anon public` key
+   
+   c. Update `.env` file:
+   ```env
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_KEY=your-anon-public-key
+   
+   # Also update these for Next.js
+   NEXTAUTH_SECRET=your-secret-key-here
+   NEXTAUTH_URL=http://localhost:3000
+   NEXT_PUBLIC_API_URL=http://localhost:8080
    ```
 
-5. **Run the API server:**
+4. **Build the application**
    ```bash
-   source venv/bin/activate
-   uvicorn langconnect.server:APP --reload --host 0.0.0.0 --port 8080
+   ./install.sh
    ```
+   
+   This script will:
+   - Install frontend dependencies using pnpm
+   - Build the Next.js application
+   - Build all Docker images
 
-6. **Run the Streamlit app (in another terminal):**
+### Running the Application
+
+1. **Start all services**
    ```bash
-   source venv/bin/activate
-   streamlit run Main.py
+   docker compose up -d
    ```
 
-**Testing Mode:**
-For quick testing without Supabase setup, set `IS_TESTING=true` in `.env`. This allows you to login with simple credentials (`user1` or `user2`) in the Streamlit interface.
+2. **Access the services**
+   - 🎨 **Frontend**: http://localhost:3000
+   - 📚 **API Documentation**: http://localhost:8080/docs
+   - 🔍 **Health Check**: http://localhost:8080/health
 
-## API Documentation
-
-The API provides comprehensive endpoints for managing collections and documents. Full interactive documentation is available at http://localhost:8080/docs when the service is running.
-
-### Authentication
-
-All API endpoints (except `/health` and `/auth/*`) require authentication when `IS_TESTING=false`.
-
-#### Authentication Endpoints
-
-| Method | Endpoint | Description | Request Body |
-|--------|----------|-------------|--------------|
-| POST | `/auth/signup` | Create a new user account | `{"email": "user@example.com", "password": "password123"}` |
-| POST | `/auth/signin` | Sign in with existing account | `{"email": "user@example.com", "password": "password123"}` |
-| POST | `/auth/signout` | Sign out (client-side cleanup) | - |
-| POST | `/auth/refresh` | Refresh access token | Query param: `refresh_token` |
-| GET | `/auth/me` | Get current user info | - (requires auth) |
-
-Include the access token in requests:
-```
-Authorization: Bearer your-access-token
-```
-
-### Collections
-
-Collections are containers for organizing related documents.
-
-| Method | Endpoint | Description | Request Body |
-|--------|----------|-------------|--------------|
-| GET | `/collections` | List all collections | - |
-| POST | `/collections` | Create a new collection | `{"name": "collection-name", "metadata": {}}` |
-| GET | `/collections/{collection_id}` | Get collection details | - |
-| PATCH | `/collections/{collection_id}` | Update collection | `{"name": "new-name", "metadata": {}}` |
-| DELETE | `/collections/{collection_id}` | Delete collection | - |
-
-### Documents
-
-Documents are stored as chunks with embeddings for efficient search.
-
-| Method | Endpoint | Description | Parameters |
-|--------|----------|-------------|------------|
-| GET | `/collections/{collection_id}/documents` | List documents | `limit`, `offset` |
-| POST | `/collections/{collection_id}/documents` | Upload documents | Form data: `files[]`, `metadatas_json` |
-| DELETE | `/collections/{collection_id}/documents/{document_id}` | Delete document | Query param: `delete_by` (document_id/file_id) |
-
-### Search
-
-Advanced search capabilities within collections.
-
-| Method | Endpoint | Description | Request Body |
-|--------|----------|-------------|--------------|
-| POST | `/collections/{collection_id}/documents/search` | Search documents | `{"query": "search text", "limit": 10, "search_type": "semantic", "filter": {}}` |
-
-Search types:
-- `semantic`: Vector similarity search using embeddings
-- `keyword`: Traditional full-text search
-- `hybrid`: Combination of semantic and keyword search
-
-Filter example:
-```json
-{
-  "query": "machine learning",
-  "limit": 5,
-  "search_type": "hybrid",
-  "filter": {
-    "source": "research_paper.pdf",
-    "type": "academic"
-  }
-}
-```
-
-## Streamlit Application
-
-The Streamlit application provides a user-friendly web interface for interacting with the LangConnect API.
-
-### Main Features
-
-- **User Authentication**: Sign up, sign in, and persistent sessions
-- **Collections Management**: Create, view, and delete collections
-- **Document Upload**: Batch upload documents with metadata
-- **Document Management**: View, search, and delete documents
-- **Advanced Search**: Semantic, keyword, and hybrid search with filters
-- **API Testing**: Built-in API tester for development
-
-### Pages Overview
-
-1. **Main.py** - Landing page with project overview and navigation
-   - Project information and features
-   - Quick links to all pages
-   - User authentication status
-
-2. **Collections Page** (`pages/1_Collections.py`)
-   - **List Tab**: View all collections with document/chunk counts
-   - **Create Tab**: Create new collections with metadata
-   - Multi-select for bulk deletion
-   - Automatic statistics calculation
-
-3. **Documents Page** (`pages/2_Documents.py`)
-   - **Upload Tab**: 
-     - Batch file upload (PDF, TXT, MD, DOCX)
-     - Automatic metadata generation
-     - Custom metadata support
-   - **List Tab**:
-     - Document-level view grouped by file_id
-     - Total character and chunk counts per document
-     - Multi-select deletion by file_id
-   - **Chunk Tab**:
-     - Individual chunk viewing with content preview
-     - Multi-select source filtering
-     - Character count display
-     - Chunk-level deletion
-
-4. **Search Page** (`pages/3_Search.py`)
-   - Collection selection
-   - Search type selection (semantic/keyword/hybrid)
-   - Metadata filtering with JSON
-   - Result display with relevance scores
-   - Source preview for filtering
-
-5. **API Tester Page** (`pages/4_API_Tester.py`)
-   - Interactive API endpoint testing
-   - Grouped by functionality
-   - Request/response visualization
-   - Authentication token management
-
-### Authentication Persistence
-
-The Streamlit app supports persistent authentication through:
-
-1. **Automatic File-Based Storage** (Default)
-   - Tokens saved to `~/.langconnect_auth_cache`
-   - Valid for 7 days
-   - Automatically loads on restart
-
-2. **Environment Variables** (Optional)
+3. **Stop services**
    ```bash
-   LANGCONNECT_TOKEN=your-access-token
-   LANGCONNECT_EMAIL=your-email@example.com
+   docker compose down
    ```
 
-## MCP (Model Context Protocol) Server
+## 🤖 MCP Integration
 
-LangConnect includes two MCP server implementations that allow AI assistants like Claude to interact with your document collections programmatically:
+### Automated Setup
 
-1. **Standard MCP Server** - Uses stdio transport for direct integration
-2. **SSE MCP Server** - Uses Server-Sent Events for web-based integration (runs on port 8765)
+1. **Generate MCP configuration**
+   ```bash
+   uv run python mcp/create_mcp_json.py
+   ```
+   
+   This command will:
+   - Prompt for your Supabase credentials
+   - Automatically obtain an access token
+   - Update `.env` with the token
+   - Generate `mcp/mcp_config.json`
 
-### Available Tools
+2. **Integration with AI Assistants**
 
-The MCP server provides 9 tools for comprehensive document management:
+   **For Claude Desktop:**
+   - Copy the contents of `mcp/mcp_config.json`
+   - Paste into Claude Desktop's MCP settings
 
-1. **search_documents** - Perform semantic, keyword, or hybrid search
-2. **list_collections** - List all available collections
-3. **get_collection** - Get details about a specific collection
-4. **create_collection** - Create a new collection
-5. **delete_collection** - Delete a collection and its documents
-6. **list_documents** - List documents in a collection
-7. **add_documents** - Add text documents with metadata
-8. **delete_document** - Delete specific documents
-9. **get_health_status** - Check API health
+   **For Cursor:**
+   - Copy the MCP configuration
+   - Add to Cursor's settings under MCP integrations
 
-### Configuration
+### Available MCP Tools
 
-#### Step 1: Authentication & Configuration
+- `search_documents` - Perform semantic/keyword/hybrid search
+- `list_collections` - List all collections
+- `get_collection` - Get collection details
+- `create_collection` - Create new collection
+- `delete_collection` - Delete collection
+- `list_documents` - List documents in collection
+- `add_documents` - Add text documents
+- `delete_document` - Delete documents
+- `get_health_status` - Check API health
 
-First, you need to authenticate and generate the MCP configuration:
-
-```bash
-# Generate MCP configuration with automatic authentication
-uv run mcp/create_mcp_json.py
-```
-
-This command will:
-1. Prompt for your email and password
-2. Automatically obtain a Supabase access token
-3. Update the `.env` file with the new access token
-4. Generate `mcp/mcp_config.json` with all necessary settings
-
-⚠️ **Important**: Supabase access tokens expire after approximately 1 hour. You'll need to run this command again when your token expires.
-
-#### Step 2: Running the SSE Server
-
-To run the MCP SSE server locally:
+### Testing MCP Integration
 
 ```bash
 # Start the SSE server
-uv run mcp/mcp_sse_server.py
-```
+uv run mcp-langconnect-sse
 
-The server will start on `http://localhost:8765` and display:
-- Server startup confirmation
-- Note that it's for MCP clients only (not browser accessible)
-
-#### Step 3: Testing with MCP Inspector
-
-You can test the MCP server using the MCP Inspector:
-
-```bash
 # Test with MCP Inspector
 npx @modelcontextprotocol/inspector
 ```
 
-In the Inspector:
-1. Select "SSE" as the transport type
-2. Enter `http://localhost:8765` as the URL
-3. Connect and test the available tools
+## 🔧 Environment Variables
 
-#### Using with Claude Desktop
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for embeddings | Yes |
+| `SUPABASE_URL` | Supabase project URL | Yes |
+| `SUPABASE_KEY` | Supabase anon public key | Yes |
+| `NEXTAUTH_SECRET` | NextAuth.js secret key | Yes |
+| `NEXTAUTH_URL` | NextAuth URL (default: http://localhost:3000) | Yes |
+| `NEXT_PUBLIC_API_URL` | Public API URL for frontend | Yes |
+| `POSTGRES_HOST` | PostgreSQL host (default: postgres) | No |
+| `POSTGRES_PORT` | PostgreSQL port (default: 5432) | No |
+| `POSTGRES_USER` | PostgreSQL user (default: teddynote) | No |
+| `POSTGRES_PASSWORD` | PostgreSQL password | No |
+| `POSTGRES_DB` | PostgreSQL database name | No |
+| `SSE_PORT` | MCP SSE server port (default: 8765) | No |
 
-Simply copy the contents of the generated `mcp/mcp_config.json` file and paste it into your Claude Desktop MCP settings to start using LangConnect tools immediately.
+## 📚 API Documentation
 
-#### Manual Configuration (Standard MCP Server)
-
-Alternatively, you can manually configure the MCP server in `mcp/mcp_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "langconnect-rag-mcp": {
-      "command": "/path/to/python",
-      "args": [
-        "/path/to/langconnect/mcp/mcp_server.py"
-      ],
-      "env": {
-        "API_BASE_URL": "http://localhost:8080",
-        "SUPABASE_JWT_SECRET": "your-jwt-token-here"
-      }
-    }
-  }
-}
-```
-
-#### SSE MCP Server Configuration
-
-For SSE transport (web-based integrations):
-
-```json
-{
-  "mcpServers": {
-    "langconnect-rag-sse": {
-      "url": "http://localhost:8765",
-      "transport": "sse"
-    }
-  }
-}
-```
-
-The SSE server provides:
-- **Base URL**: http://localhost:8765
-- **Transport**: Server-Sent Events (SSE)
-- **CORS Support**: Enabled for web integrations
+The API provides comprehensive endpoints for document and collection management:
 
 ### Authentication
+- `POST /auth/signup` - Create new account
+- `POST /auth/signin` - Sign in
+- `POST /auth/refresh` - Refresh token
+- `GET /auth/me` - Get current user
 
-Both MCP servers require Supabase JWT authentication. The easiest way to authenticate is using the `create_mcp_json.py` script as described above, which will:
-- Automatically obtain your access token
-- Update your `.env` file
-- Generate the MCP configuration
+### Collections
+- `GET /collections` - List collections
+- `POST /collections` - Create collection
+- `GET /collections/{id}` - Get collection
+- `PUT /collections/{id}` - Update collection
+- `DELETE /collections/{id}` - Delete collection
 
-#### Manual Token Retrieval (Alternative)
+### Documents
+- `GET /collections/{id}/documents` - List documents
+- `POST /collections/{id}/documents` - Upload documents
+- `DELETE /collections/{id}/documents` - Bulk delete
+- `POST /collections/{id}/documents/search` - Search documents
 
-If you need to manually get your access token:
+## 👥 Contributors
 
-1. Sign in to the Streamlit UI at http://localhost:8501
-2. Open browser Developer Tools (F12) → Application/Storage → Session Storage
-3. Find and copy the `access_token` value
-4. Set it as `SUPABASE_JWT_SECRET` in your configuration
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/teddynote-lab">
+        <img src="https://github.com/teddynote-lab.png" width="100px;" alt=""/>
+        <br />
+        <sub><b>TeddyNote LAB</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
 
-⚠️ **Token Expiration**: Supabase access tokens expire after approximately 1 hour. When your token expires, simply run `uv run mcp/create_mcp_json.py` again to get a fresh token.
+## 📄 License
 
-### Usage with Claude Desktop
-
-1. Get your Supabase access token (see Authentication above)
-2. Update the configuration file with your paths and token
-3. Add the configuration to Claude Desktop's MCP settings
-4. Claude will have access to all LangConnect tools for document management and search
-
-Example usage in Claude:
-- "Search for documents about machine learning in my research collection"
-- "Create a new collection called 'Project Documentation'"
-- "List all documents in the technical-specs collection"
-
-## Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| **Authentication** |
-| SUPABASE_URL | Supabase project URL | - | Yes |
-| SUPABASE_KEY | Supabase anon key | - | Yes |
-| IS_TESTING | Disable authentication for testing | false | No |
-| LANGCONNECT_TOKEN | Persistent auth token | - | No |
-| LANGCONNECT_EMAIL | Persistent auth email | - | No |
-| **Database** |
-| POSTGRES_HOST | PostgreSQL host | postgres | No |
-| POSTGRES_PORT | PostgreSQL port | 5432 | No |
-| POSTGRES_USER | PostgreSQL username | postgres | No |
-| POSTGRES_PASSWORD | PostgreSQL password | postgres | No |
-| POSTGRES_DB | PostgreSQL database name | postgres | No |
-| **API** |
-| API_BASE_URL | API base URL | http://localhost:8080 | No |
-| **MCP SSE Server** |
-| SSE_PORT | Port for MCP SSE server | 8765 | No |
-| SUPABASE_JWT_SECRET | JWT token from Supabase auth | - | Yes (for MCP) |
-
-## Testing
-
-Run the test suite:
-
-```bash
-# Test authentication
-python test_supabase_auth.py
-
-# Test API endpoints
-python test_auth.py
-python test_retrieval_endpoint.py
-
-# Test MCP functionality
-python test_mcp_metadata.py
-```
-
-## Security
-
-1. **Authentication**: All API endpoints require valid JWT tokens (except health check)
-2. **Token Management**: Tokens expire and must be refreshed
-3. **Environment Security**: Never commit `.env` files or expose keys
-4. **CORS**: Configure allowed origins in production
-5. **Database**: Use strong passwords and restrict access
-
-## License
-
-This project is licensed under the terms included in the repository.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-Made with ❤️ by [TeddyNote LAB](https://github.com/teddynote-lab)
+<div align="center">
+Made with ❤️ by <a href="https://github.com/teddynote-lab">TeddyNote LAB</a>
+</div>

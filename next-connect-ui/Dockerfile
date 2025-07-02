@@ -5,6 +5,16 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 WORKDIR /app
 
+# Accept build arguments
+ARG NEXT_PUBLIC_API_URL
+ARG NEXTAUTH_URL
+ARG NEXTAUTH_SECRET
+
+# Set environment variables for build
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+
 COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --no-frozen-lockfile
 COPY . .
@@ -30,8 +40,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy .env file if it exists
-COPY --from=builder /app/.env* ./
+# Environment variables will be provided by docker-compose.yml
 
 USER nextjs
 EXPOSE 3000

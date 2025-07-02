@@ -176,7 +176,7 @@ export function UploadDocumentModal({
                 {t('documents.modal.uploadTitle')}
               </DialogTitle>
               <DialogDescription className="text-muted-foreground dark:text-gray-300">
-                Upload documents and create embeddings
+                {t('documents.modal.uploadDescription')}
               </DialogDescription>
             </div>
             <div className="ml-auto">

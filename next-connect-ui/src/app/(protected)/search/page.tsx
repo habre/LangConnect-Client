@@ -162,9 +162,7 @@ export default function SearchPage() {
     })
   }
 
-  const convertNewlinesToBr = (text: string) => {
-    return text.replace(/\n/g, '<br>')
-  }
+  
 
 
   return (
@@ -375,13 +373,10 @@ export default function SearchPage() {
                         <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">Content:</h4>
                         <div 
                           className={`text-gray-900 dark:text-gray-100 max-w-none break-words overflow-wrap-anywhere word-break overflow-hidden prose prose-sm dark:prose-invert ${!expandedResults.has(index) ? 'line-clamp-3' : ''}`} 
-                          style={{ wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}
-                          dangerouslySetInnerHTML={{ 
-                            __html: expandedResults.has(index) 
-                              ? convertNewlinesToBr(result.page_content) 
-                              : result.page_content 
-                          }}
-                        />
+                          style={{ wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto', whiteSpace: 'pre-wrap' }}
+                        >
+                          {result.page_content}
+                        </div>
                       </div>
                       
                       {expandedResults.has(index) && (

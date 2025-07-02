@@ -134,8 +134,7 @@ export const ko = {
     sendRequest: '요청 보내기',
     response: '응답',
     responseTime: '응답 시간: {{time}}ms',
-    status: '상태'
-    ,
+    status: '상태',
     collectionIdRequired: '컬렉션 ID가 필요합니다',
     documentIdRequired: '문서 ID가 필요합니다',
     searchQueryRequired: '검색어를 입력하세요',

@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     // FormData를 받아서 axios로 백엔드에 전달
     const formData = await request.formData()
     
-    // axios FormData 업로드 함수 ��용
+    // Use the Axios function to upload FormData
     const response = await uploadFormData(`/collections/${id}/documents`, formData)
 
     return NextResponse.json({ success: true, data: response }, { status: 201 })

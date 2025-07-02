@@ -248,7 +248,7 @@ export default function APITesterPage() {
     if (!endpoint) return
 
     if (endpoint.params?.includes('collection_id') && !collectionId) {
-      toast.error(t('apiTester.collectionIdRequired'))
+      toast.error(t('common.collectionIdRequired'))
       return
     }
     if (endpoint.params?.includes('document_id') && !documentId) {

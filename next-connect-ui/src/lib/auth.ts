@@ -34,7 +34,15 @@ export const authOptions: NextAuthOptions = {
           }
           
           return user as any
-        } catch (error) {
+        } catch (error: any) {
+          // 이메일 확인이 필요한 경우를 처리
+          if (credentials.type === 'signup' && error?.detail?.includes('check your email')) {
+            throw new Error('EMAIL_VERIFICATION_REQUIRED')
+          }
+          // 사용자가 이미 존재하는 경우
+          if (error?.detail?.includes('User already exists')) {
+            throw new Error('USER_ALREADY_EXISTS')
+          }
           return null
         }
       }

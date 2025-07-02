@@ -16,7 +16,7 @@ ENV NODE_ENV production
 
 # Environment Variables (can be overridden at runtime)
 ENV API_URL=http://api:8080
-ENV PORT=3893
+ENV PORT=3000
 
 WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
@@ -34,6 +34,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/.env* ./
 
 USER nextjs
-EXPOSE 3893
+EXPOSE 3000
 
 CMD ["node", "server.js"]

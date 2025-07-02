@@ -157,7 +157,21 @@ export const en = {
     dontHaveAccount: "Don't have an account?",
     signInError: 'Failed to sign in',
     signUpError: 'Failed to sign up',
-    logoutSuccess: 'Logged out successfully'
+    logoutSuccess: 'Logged out successfully',
+    emailVerification: {
+      title: 'Email Verification Required',
+      subtitle: 'Almost done!',
+      message: 'Please click the confirmation link sent to your email to complete verification.',
+      description: 'Once verified, you can log in.',
+      emailNotReceived: "Didn't receive the email? Please check your spam folder.",
+      goToLogin: 'Go to Login'
+    },
+    signUpSuccess: 'Sign up successful!',
+    emailAlreadyExists: 'This email is already registered',
+    signUpProcessing: 'Processing...',
+    signUpButton: 'Sign Up',
+    signInDescription: 'Enter your information to sign in',
+    signUpDescription: 'Enter your information to create an account'
   },
   theme: {
     light: 'Light',

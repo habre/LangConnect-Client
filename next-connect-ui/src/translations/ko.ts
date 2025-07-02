@@ -156,7 +156,21 @@ export const ko = {
     dontHaveAccount: '계정이 없으신가요?',
     signInError: '로그인 실패',
     signUpError: '회원가입 실패',
-    logoutSuccess: '로그아웃되었습니다'
+    logoutSuccess: '로그아웃되었습니다',
+    emailVerification: {
+      title: '이메일 확인 필요',
+      subtitle: '가입이 거의 완료되었습니다!',
+      message: '이메일로 발송된 확인 링크를 클릭하여 이메일 인증을 완료해 주세요.',
+      description: '인증이 완료되면 로그인하실 수 있습니다.',
+      emailNotReceived: '이메일을 받지 못하셨나요? 스팸 폴더를 확인해 주세요.',
+      goToLogin: '로그인 페이지로 이동'
+    },
+    signUpSuccess: '회원가입이 완료되었습니다!',
+    emailAlreadyExists: '이미 가입된 이메일입니다',
+    signUpProcessing: '처리 중...',
+    signUpButton: '가입하기',
+    signInDescription: '로그인 정보를 입력하세요',
+    signUpDescription: '아래 정보를 입력하여 계정을 만드세요'
   },
   theme: {
     light: '라이트',

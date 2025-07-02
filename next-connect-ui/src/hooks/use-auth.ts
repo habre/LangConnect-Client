@@ -58,6 +58,21 @@ export const useAuth = () => {
 
       // 로그인 결과 처리
       if (result?.error) {
+        // 이메일 확인이 필요한 경우
+        if (result.error === 'EMAIL_VERIFICATION_REQUIRED') {
+          return {
+            success: true,
+            message: '이메일로 발송된 확인 링크를 클릭하여 이메일 인증을 완료해 주세요.',
+          };
+        }
+        // 이미 가입된 사용자인 경우
+        if (result.error === 'USER_ALREADY_EXISTS') {
+          return {
+            success: false,
+            message: '이미 가입된 이메일입니다.',
+          };
+        }
+        
         return {
           success: false,
           message: '회원가입 중 오류가 발생했습니다.',

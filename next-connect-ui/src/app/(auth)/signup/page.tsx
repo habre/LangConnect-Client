@@ -10,10 +10,14 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { useAuth } from "@/hooks/use-auth"
 import { signupSchema, SignupFormValues } from "@/lib/schemas";
+import { useState } from "react";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function SignUp() {
   const router = useRouter();
   const { register: registerUser, registerLoading } = useAuth();
+  const [emailVerificationRequired, setEmailVerificationRequired] = useState(false);
+  const { t } = useTranslation();
   
   // 1. useForm 설정
   const {
@@ -41,10 +45,17 @@ export default function SignUp() {
 
       // 5. 결과 처리
       if (result.success) {
-        toast.success(result.message);
-        setTimeout(() => {
-          router.push("/");
-        }, 1000);
+        // 이메일 확인이 필요한 경우
+        if (result.message.includes('이메일') && result.message.includes('인증')) {
+          setEmailVerificationRequired(true);
+          toast.success(t('auth.signUpSuccess'));
+        } else {
+          // 일반적인 회원가입 성공
+          toast.success(result.message);
+          setTimeout(() => {
+            router.push("/");
+          }, 1000);
+        }
       } else {
         // 서버 에러 처리
         setError("root", {
@@ -61,19 +72,54 @@ export default function SignUp() {
     }
   };
 
+  // 이메일 확인 안내 화면
+  if (emailVerificationRequired) {
+    return (
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background dark:bg-background">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1 pb-2">
+            <h1 className="text-2xl font-bold tracking-tight dark:text-gray-100">{t('auth.emailVerification.title')}</h1>
+            <p className="text-sm text-muted-foreground dark:text-gray-300">{t('auth.emailVerification.subtitle')}</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg space-y-2">
+              <p className="text-sm text-blue-900 dark:text-blue-200">
+                <strong>{t('auth.emailVerification.message')}</strong>
+              </p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                {t('auth.emailVerification.description')}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground dark:text-gray-300 text-center">
+                {t('auth.emailVerification.emailNotReceived')}
+              </p>
+            </div>
+            <Button 
+              className="w-full bg-black dark:bg-white dark:text-black text-white hover:bg-black/90 dark:hover:bg-white/90"
+              onClick={() => router.push("/signin")}
+            >
+              {t('auth.emailVerification.goToLogin')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background dark:bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 pb-2">
-          <h1 className="text-2xl font-bold tracking-tight dark:text-gray-100">회원 가입</h1>
-          <p className="text-sm text-muted-foreground dark:text-gray-300">아래 정보를 입력하여 계정을 만드세요</p>
+          <h1 className="text-2xl font-bold tracking-tight dark:text-gray-100">{t('auth.signUp')}</h1>
+          <p className="text-sm text-muted-foreground dark:text-gray-300">{t('auth.signUpDescription')}</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 2. 폼 필드와 register 함수 연결 */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium dark:text-gray-200">
-                이메일
+                {t('auth.email')}
               </label>
               <Input 
                 id="email" 
@@ -87,7 +133,7 @@ export default function SignUp() {
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium dark:text-gray-200">
-                비밀번호
+                {t('auth.password')}
               </label>
               <Input 
                 id="password" 
@@ -100,7 +146,7 @@ export default function SignUp() {
             </div>
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium dark:text-gray-200">
-                비밀번호 확인
+                {t('auth.confirmPassword')}
               </label>
               <Input 
                 id="confirmPassword" 
@@ -122,13 +168,13 @@ export default function SignUp() {
               className="w-full bg-black dark:bg-white dark:text-black text-white hover:bg-black/90 dark:hover:bg-white/90"
               disabled={isSubmitting || registerLoading}
             >
-              {(isSubmitting || registerLoading) ? "처리 중..." : "가입하기"}
+              {(isSubmitting || registerLoading) ? t('auth.signUpProcessing') : t('auth.signUpButton')}
             </Button>
           </form>
           <div className="text-center text-sm dark:text-gray-300">
-            이미 계정이 있으신가요?{" "}
+            {t('auth.alreadyHaveAccount')}{" "}
             <Link href="/signin" className="font-medium underline dark:text-blue-400 hover:dark:text-blue-300">
-              로그인
+              {t('auth.signIn')}
             </Link>
           </div>
         </CardContent>

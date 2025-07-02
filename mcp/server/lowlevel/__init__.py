@@ -1,3 +1,2 @@
-"""
-Stub package for fastmcp.internal lowlevel modules.
+"""Stub package for fastmcp.internal lowlevel modules.
 """

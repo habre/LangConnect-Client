@@ -1,11 +1,12 @@
-import streamlit as st
-import requests
 import json
 import os
-from dotenv import load_dotenv
-import pandas as pd
-from datetime import datetime
 import time
+from datetime import datetime
+
+import pandas as pd
+import requests
+import streamlit as st
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -103,7 +104,7 @@ def make_request(
             f"Connection failed. Please check if the API is running at {API_BASE_URL}",
         )
     except Exception as e:
-        return False, f"Request failed: {str(e)}"
+        return False, f"Request failed: {e!s}"
 
 
 # Check authentication
@@ -194,34 +195,38 @@ with tab1:
                         metadata = doc.get("metadata", {})
                         file_id = metadata.get("file_id", "N/A")
                         source = metadata.get("source", "N/A")
-                        
+
                         if file_id not in source_docs:
                             source_docs[file_id] = {
                                 "source": source,
                                 "file_id": file_id,
                                 "chunks": [],
                                 "timestamp": metadata.get("timestamp", "N/A"),
-                                "total_chars": 0
+                                "total_chars": 0,
                             }
-                        
+
                         content = doc.get("content", "")
                         source_docs[file_id]["chunks"].append(doc)
                         source_docs[file_id]["total_chars"] += len(content)
-                    
+
                     # Create DataFrame with document-level data
                     df_data = []
                     for file_id, doc_info in source_docs.items():
-                        df_data.append({
-                            "Source": doc_info["source"],
-                            "File ID": file_id[:8] + "..." if file_id != "N/A" else "N/A",
-                            "Chunks": len(doc_info["chunks"]),
-                            "Total Characters": doc_info["total_chars"],
-                            "Timestamp": doc_info["timestamp"],
-                            "_file_id": file_id  # Hidden column for deletion
-                        })
-                    
+                        df_data.append(
+                            {
+                                "Source": doc_info["source"],
+                                "File ID": file_id[:8] + "..."
+                                if file_id != "N/A"
+                                else "N/A",
+                                "Chunks": len(doc_info["chunks"]),
+                                "Total Characters": doc_info["total_chars"],
+                                "Timestamp": doc_info["timestamp"],
+                                "_file_id": file_id,  # Hidden column for deletion
+                            }
+                        )
+
                     df = pd.DataFrame(df_data)
-                    
+
                     # Store documents in session state for persistence
                     st.session_state.doc_list_df = df
                     st.session_state.doc_list_collection_id = collection_id
@@ -263,7 +268,9 @@ with tab1:
                             selected_file_ids = []
                             for idx in selected_indices:
                                 if idx < len(st.session_state.doc_list_df):
-                                    file_id = st.session_state.doc_list_df.iloc[idx]["_file_id"]
+                                    file_id = st.session_state.doc_list_df.iloc[idx][
+                                        "_file_id"
+                                    ]
                                     selected_file_ids.append(file_id)
 
                             # Delete all chunks for each file_id
@@ -275,7 +282,7 @@ with tab1:
 
                             for i, file_id in enumerate(selected_file_ids):
                                 progress_text.text(
-                                    f"Deleting document {i+1} of {len(selected_file_ids)}..."
+                                    f"Deleting document {i + 1} of {len(selected_file_ids)}..."
                                 )
                                 progress_bar.progress((i + 1) / len(selected_file_ids))
 
@@ -304,7 +311,9 @@ with tab1:
 
                             # Clear session state to force refresh
                             st.session_state.doc_list_df = None
-                            st.session_state.doc_list_collection_id = None  # Force re-fetch
+                            st.session_state.doc_list_collection_id = (
+                                None  # Force re-fetch
+                            )
                             time.sleep(1)
                             st.rerun()
         else:
@@ -379,7 +388,7 @@ with tab2:
                         content = doc.get("content", "")
                         source = metadata.get("source", "N/A")
                         all_sources.add(source)
-                        
+
                         df_data.append(
                             {
                                 "ID": doc.get("id", "N/A")[:8] + "...",
@@ -417,9 +426,9 @@ with tab2:
                 "Filter by Source",
                 st.session_state.chunk_tab_all_sources,
                 default=st.session_state.chunk_tab_all_sources,
-                key="source_filter"
+                key="source_filter",
             )
-            
+
             # Filter dataframe based on selected sources
             if selected_sources:
                 filtered_df = st.session_state.chunk_tab_df[
@@ -427,13 +436,23 @@ with tab2:
                 ]
             else:
                 filtered_df = st.session_state.chunk_tab_df
-            
-            st.success(f"Showing {len(filtered_df)} of {len(st.session_state.chunk_tab_df)} chunks")
+
+            st.success(
+                f"Showing {len(filtered_df)} of {len(st.session_state.chunk_tab_df)} chunks"
+            )
 
             # Display dataframe with selection
             event = st.dataframe(
                 filtered_df[
-                    ["ID", "Content Preview", "Count", "Source", "Metadata", "Timestamp", "File ID"]
+                    [
+                        "ID",
+                        "Content Preview",
+                        "Count",
+                        "Source",
+                        "Metadata",
+                        "Timestamp",
+                        "File ID",
+                    ]
                 ],  # Show only visible columns
                 use_container_width=True,
                 on_select="rerun",
@@ -471,7 +490,7 @@ with tab2:
 
                             for i, doc_id in enumerate(selected_doc_ids):
                                 progress_text.text(
-                                    f"Deleting chunk {i+1} of {len(selected_doc_ids)}..."
+                                    f"Deleting chunk {i + 1} of {len(selected_doc_ids)}..."
                                 )
                                 progress_bar.progress((i + 1) / len(selected_doc_ids))
 
@@ -494,13 +513,13 @@ with tab2:
                                 )
 
                             if failed_count > 0:
-                                st.error(
-                                    f"❌ Failed to delete {failed_count} chunk(s)"
-                                )
+                                st.error(f"❌ Failed to delete {failed_count} chunk(s)")
 
                             # Clear session state to force refresh
                             st.session_state.chunk_tab_df = None
-                            st.session_state.chunk_tab_collection_id = None  # Force re-fetch
+                            st.session_state.chunk_tab_collection_id = (
+                                None  # Force re-fetch
+                            )
                             time.sleep(1)
                             st.rerun()
         else:
@@ -540,7 +559,7 @@ with tab3:
         accept_multiple_files=True,
         key="file_uploader",
     )
-    
+
     # Add chunk size and overlap controls
     st.subheader("Chunk Settings")
     col1, col2 = st.columns(2)
@@ -552,7 +571,7 @@ with tab3:
             value=1000,
             step=100,
             help="The maximum number of characters in each chunk",
-            key="chunk_size"
+            key="chunk_size",
         )
     with col2:
         chunk_overlap = st.number_input(
@@ -562,7 +581,7 @@ with tab3:
             value=200,
             step=50,
             help="The number of overlapping characters between chunks",
-            key="chunk_overlap"
+            key="chunk_overlap",
         )
 
     # Show uploaded files and auto-generate metadata
@@ -627,7 +646,7 @@ with tab3:
 
                 data = {
                     "chunk_size": str(chunk_size),
-                    "chunk_overlap": str(chunk_overlap)
+                    "chunk_overlap": str(chunk_overlap),
                 }
                 if metadata_list:
                     data["metadatas_json"] = json.dumps(metadata_list)
@@ -651,4 +670,4 @@ with tab3:
             except json.JSONDecodeError:
                 st.error("Invalid JSON in metadata")
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error(f"Error: {e!s}")

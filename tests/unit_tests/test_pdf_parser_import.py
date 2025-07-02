@@ -4,6 +4,7 @@
 def test_pdf_plumber_parser_configured() -> None:
     """Test that PDFPlumberParser is correctly configured in document_processor."""
     from langchain_community.document_loaders.parsers import PDFPlumberParser
+
     from langconnect.services.document_processor import HANDLERS
 
     # Verify PDFPlumberParser is used for PDFs

@@ -169,7 +169,7 @@ async def refresh_token(refresh_token: str) -> AuthResponse:
             email=response.user.email,
         )
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 

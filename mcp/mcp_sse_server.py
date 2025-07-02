@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""
-LangConnect MCP Server using FastMCP
+"""LangConnect MCP Server using FastMCP
 """
 
-import os
 import json
-from typing import Optional
+import os
 from datetime import datetime
+from typing import Optional
 
-from dotenv import load_dotenv
-from fastmcp import FastMCP
 import httpx
+from dotenv import load_dotenv
+
+from fastmcp import FastMCP
 
 load_dotenv()
 
 # Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
-SUPABASE_ACCESS_TOKEN = os.getenv("SUPABASE_ACCESS_TOKEN", "")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
 SSE_PORT = int(os.getenv("SSE_PORT", "8765"))
 
 # Create FastMCP server
@@ -49,7 +49,7 @@ class LangConnectClient:
 
 
 # Initialize client
-client = LangConnectClient(API_BASE_URL, SUPABASE_ACCESS_TOKEN)
+client = LangConnectClient(API_BASE_URL, SUPABASE_JWT_SECRET)
 
 
 @mcp.tool
@@ -192,14 +192,14 @@ async def delete_document(collection_id: str, document_id: str) -> str:
 async def get_health_status() -> str:
     """Check API health status."""
     result = await client.request("GET", "/health")
-    return f"Status: {result.get('status', 'Unknown')}\nAPI: {API_BASE_URL}\nAuth: {'✓' if SUPABASE_ACCESS_TOKEN else '✗'}"
+    return f"Status: {result.get('status', 'Unknown')}\nAPI: {API_BASE_URL}\nAuth: {'✓' if SUPABASE_JWT_SECRET else '✗'}"
 
 
 if __name__ == "__main__":
     # SSE server mode
     print(f"Starting MCP SSE server on http://127.0.0.1:{SSE_PORT}")
     print(
-        f"This server is for MCP clients only and cannot be accessed directly in a browser."
+        "This server is for MCP clients only and cannot be accessed directly in a browser."
     )
-    print(f"Use the configuration in the Streamlit UI to connect MCP clients.")
+    print("Use the configuration in the Streamlit UI to connect MCP clients.")
     mcp.run(transport="sse", port=SSE_PORT)

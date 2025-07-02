@@ -45,7 +45,7 @@ Update `mcp_config.json`:
       ],
       "env": {
         "API_BASE_URL": "http://localhost:8080",
-        "SUPABASE_ACCESS_TOKEN": "YOUR_JWT_TOKEN_HERE"
+        "SUPABASE_JWT_SECRET": "YOUR_JWT_TOKEN_HERE"
       }
     }
   }
@@ -56,13 +56,13 @@ Update `mcp_config.json`:
 
 Set the environment variable:
 ```bash
-export SUPABASE_ACCESS_TOKEN="YOUR_JWT_TOKEN_HERE"
+export SUPABASE_JWT_SECRET="YOUR_JWT_TOKEN_HERE"
 docker compose up -d mcp-sse
 ```
 
 Or add it to your `.env` file:
 ```
-SUPABASE_ACCESS_TOKEN=YOUR_JWT_TOKEN_HERE
+SUPABASE_JWT_SECRET=YOUR_JWT_TOKEN_HERE
 ```
 
 ## Token Expiration
@@ -81,7 +81,7 @@ To test the MCP server with [MCP Inspector](https://github.com/modelcontextproto
 
 ```bash
 # Set your access token
-export SUPABASE_ACCESS_TOKEN="your-jwt-token-here"
+export SUPABASE_JWT_SECRET="your-jwt-token-here"
 
 # Run with MCP Inspector
 npx @modelcontextprotocol/inspector python mcp/mcp_server.py
@@ -93,7 +93,7 @@ This will start the MCP server and open the Inspector UI in your browser.
 
 1. Start the SSE server:
 ```bash
-export SUPABASE_ACCESS_TOKEN="your-jwt-token-here"
+export SUPABASE_JWT_SECRET="your-jwt-token-here"
 python mcp/mcp_langconnect_sse_server.py
 ```
 

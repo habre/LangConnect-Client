@@ -1,10 +1,11 @@
-import streamlit as st
-import requests
 import json
 import os
-from dotenv import load_dotenv
-import pandas as pd
 import time
+
+import pandas as pd
+import requests
+import streamlit as st
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -104,7 +105,7 @@ def make_request(
             f"Connection failed. Please check if the API is running at {API_BASE_URL}",
         )
     except Exception as e:
-        return False, f"Request failed: {str(e)}"
+        return False, f"Request failed: {e!s}"
 
 
 @st.dialog("삭제 확인")
@@ -130,9 +131,9 @@ def confirm_delete_collections(selected_names, selected_uuids):
             progress_text = st.empty()
             progress_bar = st.progress(0)
 
-            for i, (uuid, name) in enumerate(zip(selected_uuids, selected_names)):
+            for i, (uuid, name) in enumerate(zip(selected_uuids, selected_names, strict=False)):
                 progress_text.text(
-                    f"컬렉션 삭제 중 {i+1}/{len(selected_uuids)}: {name}..."
+                    f"컬렉션 삭제 중 {i + 1}/{len(selected_uuids)}: {name}..."
                 )
                 progress_bar.progress((i + 1) / len(selected_uuids))
 

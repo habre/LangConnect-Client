@@ -1,3 +1,2 @@
-"""
-Package initializer for mcp module.
+"""Package initializer for mcp module.
 """

@@ -1,14 +1,13 @@
-import streamlit as st
-import requests
 import json
 import os
-from dotenv import load_dotenv
-from typing import Optional, Dict, Any, List
-import pandas as pd
-from datetime import datetime
-import time
 import pickle
+import time
 from pathlib import Path
+from typing import Any, Optional
+
+import requests
+import streamlit as st
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -105,9 +104,9 @@ def get_headers(include_content_type=True):
 def make_request(
     method: str,
     endpoint: str,
-    data: Optional[Dict] = None,
-    files: Optional[Dict] = None,
-    json_data: Optional[Dict] = None,
+    data: Optional[dict] = None,
+    files: Optional[dict] = None,
+    json_data: Optional[dict] = None,
 ) -> tuple[bool, Any]:
     url = f"{API_BASE_URL}{endpoint}"
 
@@ -153,7 +152,7 @@ def make_request(
             f"Connection failed. Please check if the API is running at {API_BASE_URL}",
         )
     except Exception as e:
-        return False, f"Request failed: {str(e)}"
+        return False, f"Request failed: {e!s}"
 
 
 # Collections tab has been moved to pages/1_Collections.py
@@ -176,19 +175,21 @@ def auth_page():
     # Testing mode - simple authentication
     if IS_TESTING:
         st.info("🧪 Testing Mode - Use simple credentials")
-        
+
         with st.form("testing_signin_form"):
             st.write("**Testing Users:**")
             st.write("- user1")
             st.write("- user2")
-            
+
             username = st.text_input("Username", placeholder="user1 or user2")
             submitted = st.form_submit_button("Sign In (Testing)", type="primary")
-            
+
             if submitted:
                 if username in ["user1", "user2"]:
                     st.session_state.authenticated = True
-                    st.session_state.access_token = username  # Use username as token in testing
+                    st.session_state.access_token = (
+                        username  # Use username as token in testing
+                    )
                     st.session_state.user_email = f"{username}@test.com"
                     # Save to file
                     save_auth_to_file(username, f"{username}@test.com")
@@ -196,10 +197,12 @@ def auth_page():
                     st.rerun()
                 else:
                     st.error("Please use 'user1' or 'user2' for testing")
-        
+
         st.divider()
         st.subheader("Production Authentication")
-        st.write("*For production use, configure SUPABASE_URL and SUPABASE_KEY, then set IS_TESTING=false*")
+        st.write(
+            "*For production use, configure SUPABASE_URL and SUPABASE_KEY, then set IS_TESTING=false*"
+        )
         return
 
     tab1, tab2 = st.tabs(["Sign In", "Sign Up"])

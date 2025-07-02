@@ -1,7 +1,8 @@
-import streamlit as st
-import requests
 import json
 import os
+
+import requests
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -102,7 +103,7 @@ def make_request(
             f"Connection failed. Please check if the API is running at {API_BASE_URL}",
         )
     except Exception as e:
-        return False, f"Request failed: {str(e)}"
+        return False, f"Request failed: {e!s}"
 
 
 # Check authentication
@@ -201,7 +202,7 @@ if st.button("Search", type="primary"):
 
                     for i, result in enumerate(results):
                         with st.expander(
-                            f"Result {i+1} - Score: {result['score']:.4f}"
+                            f"Result {i + 1} - Score: {result['score']:.4f}"
                         ):
                             st.write("**Content:**")
                             st.write(result["page_content"])
@@ -219,4 +220,4 @@ if st.button("Search", type="primary"):
         except json.JSONDecodeError:
             st.error("Invalid JSON in filter")
         except Exception as e:
-            st.error(f"Error: {str(e)}")
+            st.error(f"Error: {e!s}")

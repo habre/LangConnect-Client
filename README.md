@@ -445,7 +445,7 @@ Alternatively, you can manually configure the MCP server in `mcp/mcp_config.json
       ],
       "env": {
         "API_BASE_URL": "http://localhost:8080",
-        "SUPABASE_ACCESS_TOKEN": "your-jwt-token-here"
+        "SUPABASE_JWT_SECRET": "your-jwt-token-here"
       }
     }
   }
@@ -486,7 +486,7 @@ If you need to manually get your access token:
 1. Sign in to the Streamlit UI at http://localhost:8501
 2. Open browser Developer Tools (F12) → Application/Storage → Session Storage
 3. Find and copy the `access_token` value
-4. Set it as `SUPABASE_ACCESS_TOKEN` in your configuration
+4. Set it as `SUPABASE_JWT_SECRET` in your configuration
 
 ⚠️ **Token Expiration**: Supabase access tokens expire after approximately 1 hour. When your token expires, simply run `uv run mcp/create_mcp_json.py` again to get a fresh token.
 
@@ -522,7 +522,7 @@ Example usage in Claude:
 | API_BASE_URL | API base URL | http://localhost:8080 | No |
 | **MCP SSE Server** |
 | SSE_PORT | Port for MCP SSE server | 8765 | No |
-| SUPABASE_ACCESS_TOKEN | JWT token from Supabase auth | - | Yes (for MCP) |
+| SUPABASE_JWT_SECRET | JWT token from Supabase auth | - | Yes (for MCP) |
 
 ## Testing
 

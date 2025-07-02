@@ -1,6 +1,6 @@
 """Tests for custom chunk_size and chunk_overlap parameters in document processing."""
+
 import json
-from uuid import UUID
 
 from tests.unit_tests.fixtures import (
     get_async_test_client,
@@ -27,7 +27,7 @@ async def test_documents_create_with_custom_chunk_size() -> None:
         # Prepare a long text file that will be chunked
         long_text = "This is a test sentence. " * 100  # About 2500 characters
         files = [("files", ("long_test.txt", long_text.encode(), "text/plain"))]
-        
+
         # Test with small chunk size (should create more chunks)
         small_chunk_size = 200
         resp = await client.post(
@@ -49,7 +49,7 @@ async def test_documents_create_with_custom_chunk_size() -> None:
         )
         assert list_resp.status_code == 200
         docs = list_resp.json()
-        
+
         # Verify that chunks are approximately the specified size
         for doc in docs:
             content_length = len(doc["content"])
@@ -72,17 +72,14 @@ async def test_documents_create_with_custom_chunk_overlap() -> None:
         # Prepare a text file
         text_content = "ABCDEFGHIJ" * 50  # 500 characters of repeating pattern
         files = [("files", ("overlap_test.txt", text_content.encode(), "text/plain"))]
-        
+
         # Test with custom chunk overlap
         chunk_size = 100
         chunk_overlap = 50
         resp = await client.post(
             f"/collections/{collection_id}/documents",
             files=files,
-            data={
-                "chunk_size": str(chunk_size), 
-                "chunk_overlap": str(chunk_overlap)
-            },
+            data={"chunk_size": str(chunk_size), "chunk_overlap": str(chunk_overlap)},
             headers=USER_1_HEADERS,
         )
         assert resp.status_code == 200
@@ -90,7 +87,7 @@ async def test_documents_create_with_custom_chunk_overlap() -> None:
         assert data["success"] is True
         chunk_ids = data["added_chunk_ids"]
         assert isinstance(chunk_ids, list)
-        
+
         # With overlap, we should have more chunks than without overlap
         expected_chunks_with_overlap = len(text_content) // (chunk_size - chunk_overlap)
         assert len(chunk_ids) >= expected_chunks_with_overlap - 1
@@ -112,7 +109,7 @@ async def test_documents_create_with_default_chunk_parameters() -> None:
         # Prepare a text file
         text_content = "Test content. " * 100  # About 1400 characters
         files = [("files", ("default_test.txt", text_content.encode(), "text/plain"))]
-        
+
         # Create document without specifying chunk parameters (should use defaults)
         resp = await client.post(
             f"/collections/{collection_id}/documents",
@@ -122,14 +119,14 @@ async def test_documents_create_with_default_chunk_parameters() -> None:
         assert resp.status_code == 200
         data = resp.json()
         assert data["success"] is True
-        
+
         # List documents to check chunk size
         list_resp = await client.get(
             f"/collections/{collection_id}/documents", headers=USER_1_HEADERS
         )
         assert list_resp.status_code == 200
         docs = list_resp.json()
-        
+
         # With default chunk_size=1000, we should have at least 2 chunks
         assert len(docs) >= 2
         # First chunk should be close to 1000 characters
@@ -151,8 +148,10 @@ async def test_documents_create_with_large_chunk_size() -> None:
 
         # Prepare a medium-sized text file
         text_content = "Large chunk test. " * 50  # About 900 characters
-        files = [("files", ("large_chunk_test.txt", text_content.encode(), "text/plain"))]
-        
+        files = [
+            ("files", ("large_chunk_test.txt", text_content.encode(), "text/plain"))
+        ]
+
         # Use a very large chunk size (larger than the content)
         large_chunk_size = 5000
         resp = await client.post(
@@ -165,10 +164,10 @@ async def test_documents_create_with_large_chunk_size() -> None:
         data = resp.json()
         assert data["success"] is True
         chunk_ids = data["added_chunk_ids"]
-        
+
         # Should have only one chunk since content is smaller than chunk_size
         assert len(chunk_ids) == 1
-        
+
         # Verify the entire content is in one chunk
         list_resp = await client.get(
             f"/collections/{collection_id}/documents", headers=USER_1_HEADERS
@@ -198,7 +197,7 @@ async def test_documents_create_with_multiple_files_and_custom_chunks() -> None:
             ("files", ("medium.txt", ("Medium content. " * 50).encode(), "text/plain")),
             ("files", ("long.txt", ("Long content. " * 200).encode(), "text/plain")),
         ]
-        
+
         # Prepare metadata for each file
         metadata = [
             {"source": "short.txt", "type": "short"},
@@ -206,7 +205,7 @@ async def test_documents_create_with_multiple_files_and_custom_chunks() -> None:
             {"source": "long.txt", "type": "long"},
         ]
         metadata_json = json.dumps(metadata)
-        
+
         # Create documents with custom chunk parameters
         chunk_size = 300
         chunk_overlap = 50
@@ -224,23 +223,23 @@ async def test_documents_create_with_multiple_files_and_custom_chunks() -> None:
         data = resp.json()
         assert data["success"] is True
         chunk_ids = data["added_chunk_ids"]
-        
+
         # Should have multiple chunks (at least one per file)
         assert len(chunk_ids) >= 3
-        
+
         # Verify chunks retain metadata
         list_resp = await client.get(
             f"/collections/{collection_id}/documents", headers=USER_1_HEADERS
         )
         assert list_resp.status_code == 200
         docs = list_resp.json()
-        
+
         # Check that metadata is preserved in chunks
         sources_found = set()
         for doc in docs:
             if "source" in doc["metadata"]:
                 sources_found.add(doc["metadata"]["source"])
-        
+
         # All three sources should be present
         assert "short.txt" in sources_found
         assert "medium.txt" in sources_found
@@ -264,7 +263,7 @@ async def test_documents_create_with_zero_overlap() -> None:
         # Create content that's exactly 300 characters
         text_content = "A" * 100 + "B" * 100 + "C" * 100
         files = [("files", ("zero_overlap.txt", text_content.encode(), "text/plain"))]
-        
+
         # Create document with chunk_size=100 and overlap=0
         chunk_size = 100
         resp = await client.post(
@@ -277,20 +276,20 @@ async def test_documents_create_with_zero_overlap() -> None:
         data = resp.json()
         assert data["success"] is True
         chunk_ids = data["added_chunk_ids"]
-        
+
         # Should have exactly 3 chunks with no overlap
         assert len(chunk_ids) == 3
-        
+
         # Verify chunks don't overlap
         list_resp = await client.get(
             f"/collections/{collection_id}/documents", headers=USER_1_HEADERS
         )
         assert list_resp.status_code == 200
         docs = list_resp.json()
-        
+
         # Sort by content to ensure order
         docs_sorted = sorted(docs, key=lambda x: x["content"])
-        
+
         # Each chunk should contain only one type of character
         assert "A" in docs_sorted[0]["content"] and "B" not in docs_sorted[0]["content"]
         assert "B" in docs_sorted[1]["content"]
@@ -313,7 +312,7 @@ async def test_documents_create_with_edge_case_parameters() -> None:
         # Test 1: chunk_overlap equal to chunk_size (should still work)
         text_content = "Test content for edge cases. " * 20
         files = [("files", ("edge_test.txt", text_content.encode(), "text/plain"))]
-        
+
         resp = await client.post(
             f"/collections/{collection_id}/documents",
             files=files,
@@ -321,7 +320,7 @@ async def test_documents_create_with_edge_case_parameters() -> None:
             headers=USER_1_HEADERS,
         )
         assert resp.status_code == 200
-        
+
         # Test 2: Very small chunk_size
         resp2 = await client.post(
             f"/collections/{collection_id}/documents",

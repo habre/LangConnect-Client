@@ -9,11 +9,19 @@ from pydantic import TypeAdapter, ValidationError
 from langconnect.auth import AuthenticatedUser, resolve_user
 from langconnect.database.collections import Collection
 from langconnect.models import (
-    DocumentResponse, 
-    SearchQuery, 
+    DocumentResponse,
+    SearchQuery,
     SearchResult,
-    DocumentDelete
+    DocumentDelete,
 )
+from langconnect.services import process_document
+
+# Create a TypeAdapter that enforces “list of dict”
+_metadata_adapter = TypeAdapter(list[dict[str, Any]])
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(tags=["documents"])
 
 @router.delete(
     "/collections/{collection_id}/documents",
@@ -43,14 +51,7 @@ async def documents_bulk_delete(
 
     return {"success": True, "deleted_count": deleted_count}
 
-from langconnect.services import process_document
 
-# Create a TypeAdapter that enforces “list of dict”
-_metadata_adapter = TypeAdapter(list[dict[str, Any]])
-
-logger = logging.getLogger(__name__)
-
-router = APIRouter(tags=["documents"])
 
 
 @router.post("/collections/{collection_id}/documents", response_model=dict[str, Any])

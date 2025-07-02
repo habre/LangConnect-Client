@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     // FormData를 받아서 axios로 백엔드에 전달
     const formData = await request.formData()
     
-    // axios FormData 업로드 함수 사용
+    // axios FormData 업로드 함수 ��용
     const response = await uploadFormData(`/collections/${id}/documents`, formData)
 
     return NextResponse.json({ success: true, data: response }, { status: 201 })
@@ -35,6 +35,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ 
       success: false, 
       message: error.message || 'Failed to upload documents'
+    }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: Request, 
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const body = await request.json()
+  
+  try {
+    const response = await serverFetchAPI(`/collections/${id}/documents`, {
+      method: "DELETE",
+      body: JSON.stringify(body),
+    })
+
+    return NextResponse.json({ success: true, data: response }, { status: 200 })
+  } catch (error: any) {
+    console.error('Failed to delete documents:', error)
+    return NextResponse.json({ 
+      success: false, 
+      message: error.message || 'Failed to delete documents' 
     }, { status: 500 })
   }
 }

@@ -65,7 +65,7 @@ class CollectionsManager:
                 FROM langchain_pg_collection c
                 LEFT JOIN langchain_pg_embedding e ON c.uuid = e.collection_id
                 WHERE c.cmetadata->>'owner_id' = $1
-                GROUP BY c.uuid, c.cmetadata
+                GROUP BY c.uuid
                 ORDER BY c.cmetadata->>'name';
                 """,
                 self.user_id,

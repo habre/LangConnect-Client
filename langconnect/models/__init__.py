@@ -9,6 +9,7 @@ from langconnect.models.document import (
     DocumentUpdate,
     SearchQuery,
     SearchResult,
+    DocumentDelete,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "DocumentUpdate",
     "SearchQuery",
     "SearchResult",
+    "DocumentDelete",
 ]

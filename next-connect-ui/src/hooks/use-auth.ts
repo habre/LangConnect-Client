@@ -133,15 +133,15 @@ export const useAuth = () => {
   const logout = async (): Promise<LogoutResponse> => {
     setLogoutLoading(true);
     try {
-      // 1. NextAuth 세션 먼저 정리 (JWT 쿠키 삭제)
+      // 1. 서버 세션 정리 (백엔드 API 호출)
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      // 2. NextAuth 세션 정리 (JWT 쿠키 삭제)
       await signOut({ 
         redirect: false,
         callbackUrl: '/'
-      });
-
-      // 2. 서버 세션 정리 (백엔드 API 호출)
-      await fetch('/api/auth/logout', {
-        method: 'POST',
       });
       
       return {

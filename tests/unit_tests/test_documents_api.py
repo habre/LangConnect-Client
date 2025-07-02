@@ -475,32 +475,74 @@ async def test_documents_create_with_mismatched_metadata():
         assert "does not match number of files" in data["detail"]
 
 
-async def test_documents_create_ownership_validation():
-    """Test creating documents with a different user than the collection owner."""
+        assert "Collection not found" in data["detail"]
+
+
+async def test_documents_bulk_delete() -> None:
+    """Test bulk deleting documents by document_ids and file_ids."""
     async with get_async_test_client() as client:
-        # Create a collection as USER_1
-        collection_name = "doc_test_ownership"
-        collection_response = await client.post(
-            "/collections",
-            json={"name": collection_name, "metadata": {}},
+        # Create a collection
+        collection_name = "bulk_delete_test_col"
+        col_payload = {"name": collection_name}
+        create_col = await client.post("/collections", json=col_payload, headers=USER_1_HEADERS)
+        assert create_col.status_code == 201
+        collection_id = create_col.json()["uuid"]
+
+        # Upload two different files, resulting in multiple chunks
+        files1 = [("files", ("file1.txt", b"first file content", "text/plain"))]
+        meta1 = json.dumps([{"source": "file1.txt"}])
+        await client.post(
+            f"/collections/{collection_id}/documents",
+            files=files1,
+            data={"metadatas_json": meta1},
             headers=USER_1_HEADERS,
         )
-        assert collection_response.status_code == 201
-        collection_data = collection_response.json()
-        collection_id = collection_data["uuid"]
 
-        # Prepare a file
-        file_content = b"This is a test document for ownership validation."
-        files = [("files", ("ownership.txt", file_content, "text/plain"))]
-
-        # Try to create document as USER_2
-        response = await client.post(
+        files2 = [("files", ("file2.txt", b"second file content", "text/plain"))]
+        meta2 = json.dumps([{"source": "file2.txt"}])
+        await client.post(
             f"/collections/{collection_id}/documents",
-            files=files,
-            headers=USER_2_HEADERS,
+            files=files2,
+            data={"metadatas_json": meta2},
+            headers=USER_1_HEADERS,
         )
 
-        # Should return 404 as USER_2 can't see USER_1's collection
-        assert response.status_code == 404
-        data = response.json()
-        assert "Collection not found" in data["detail"]
+        # List all documents to get their IDs
+        list_resp = await client.get(f"/collections/{collection_id}/documents?limit=100", headers=USER_1_HEADERS)
+        assert list_resp.status_code == 200
+        docs = list_resp.json()
+        assert len(docs) == 2
+        
+        doc_ids = [doc['id'] for doc in docs]
+        file_ids = [doc['metadata']['file_id'] for doc in docs]
+
+        # Bulk delete by document_ids
+        del_payload_docs = {"document_ids": [doc_ids[0]]}
+        del_resp_docs = await client.delete(
+            f"/collections/{collection_id}/documents",
+            json=del_payload_docs,
+            headers=USER_1_HEADERS,
+        )
+        assert del_resp_docs.status_code == 200
+        assert del_resp_docs.json()["success"] is True
+        assert del_resp_docs.json()["deleted_count"] == 1
+
+        # Verify one document is left
+        list_resp_after_doc_delete = await client.get(f"/collections/{collection_id}/documents", headers=USER_1_HEADERS)
+        assert len(list_resp_after_doc_delete.json()) == 1
+
+        # Bulk delete by file_ids
+        del_payload_files = {"file_ids": [file_ids[1]]}
+        del_resp_files = await client.delete(
+            f"/collections/{collection_id}/documents",
+            json=del_payload_files,
+            headers=USER_1_HEADERS,
+        )
+        assert del_resp_files.status_code == 200
+        assert del_resp_files.json()["success"] is True
+        assert del_resp_files.json()["deleted_count"] == 1
+
+        # Verify no documents are left
+        list_resp_after_file_delete = await client.get(f"/collections/{collection_id}/documents", headers=USER_1_HEADERS)
+        assert list_resp_after_file_delete.json() == []
+

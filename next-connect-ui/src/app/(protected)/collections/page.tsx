@@ -49,84 +49,19 @@ export default function CollectionsPage() {
         toast.error(t("common.error"), {
           description: t("collections.messages.fetchError")
         })
-        return
-      }
-
-      const collectionsData: Collection[] = res.data
-
-      if (collectionsData.length === 0) {
         setCollections([])
         return
       }
 
-      // Fetch stats for each collection
-      const collectionsWithStats = await Promise.all(
-        collectionsData.map(async (collection) => {
-          try {
-            // Fetch all documents using pagination
-            const allDocuments: any[] = []
-            let offset = 0
-            const limit = 100
-
-            while (true) {
-              const documentsResponse = await fetch(
-                `/api/collections/${collection.uuid}/documents?limit=${limit}&offset=${offset}`
-              )
-              const res = await documentsResponse.json()
-              
-              if (!res.success) {
-                break
-              }
-              
-              const documents = res.data
-              if (!documents || documents.length === 0) {
-                break
-              }
-
-              if (documents.length > 0 && offset === 0) {
-                // console.log('First document structure:', JSON.stringify(documents[0], null, 2))
-              }
-              allDocuments.push(...documents)
-
-              // If we got less than the limit, we've reached the end
-              if (documents.length < limit) {
-                break
-              }
-
-              offset += limit
-            }
-            
-            const totalChunks = allDocuments.length
-            
-            // Count unique documents by file_id
-            const uniqueFileIds = new Set<string>()
-            allDocuments.forEach((doc: any) => {
-              const fileId = doc.metadata?.file_id
-              if (fileId) {
-                uniqueFileIds.add(fileId)
-              }
-            })
-            
-            const totalDocuments = uniqueFileIds.size
-            
-            return {
-              ...collection,
-              stats: {
-                documents: totalDocuments,
-                chunks: totalChunks
-              }
-            }
-          } catch (error) {
-            console.error(`Failed to fetch stats for collection ${collection.name}:`, error)
-            return {
-              ...collection,
-              stats: { documents: 0, chunks: 0 }
-            }
-          }
-        })
-      )
-
-      setCollections(collectionsWithStats)
+      const collectionsData: CollectionWithStats[] = res.data.map((c: any) => ({
+        ...c,
+        stats: {
+          documents: c.document_count,
+          chunks: c.chunk_count,
+        }
+      }))
+      
+      setCollections(collectionsData)
     } catch (error) {
       console.error('Failed to fetch collections:', error)
     } finally {

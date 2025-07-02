@@ -38,6 +38,8 @@ class CollectionResponse(BaseModel):
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Metadata associated with the collection."
     )
+    document_count: int = Field(0, description="The number of documents in the collection.")
+    chunk_count: int = Field(0, description="The number of chunks in the collection.")
 
     class Config:
         # Allows creating model from dict like

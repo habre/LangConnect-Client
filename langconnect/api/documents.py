@@ -8,7 +8,41 @@ from pydantic import TypeAdapter, ValidationError
 
 from langconnect.auth import AuthenticatedUser, resolve_user
 from langconnect.database.collections import Collection
-from langconnect.models import DocumentResponse, SearchQuery, SearchResult
+from langconnect.models import (
+    DocumentResponse, 
+    SearchQuery, 
+    SearchResult,
+    DocumentDelete
+)
+
+@router.delete(
+    "/collections/{collection_id}/documents",
+    response_model=dict[str, Any],
+)
+async def documents_bulk_delete(
+    user: Annotated[AuthenticatedUser, Depends(resolve_user)],
+    collection_id: UUID,
+    delete_request: DocumentDelete,
+):
+    """Deletes multiple documents from a collection by their IDs or file IDs."""
+    collection = Collection(
+        collection_id=str(collection_id),
+        user_id=user.identity,
+    )
+
+    if not delete_request.document_ids and not delete_request.file_ids:
+        raise HTTPException(
+            status_code=400,
+            detail="Either document_ids or file_ids must be provided.",
+        )
+
+    deleted_count = await collection.delete_many(
+        document_ids=delete_request.document_ids,
+        file_ids=delete_request.file_ids,
+    )
+
+    return {"success": True, "deleted_count": deleted_count}
+
 from langconnect.services import process_document
 
 # Create a TypeAdapter that enforces “list of dict”

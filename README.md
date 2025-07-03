@@ -275,9 +275,13 @@ The API provides comprehensive endpoints for document and collection management:
 
 ## 👥 Contributors
 
-<a href="https://github.com/teddynote-lab/LangConnect-Client/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=teddynote-lab/LangConnect-Client" />
-</a>
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/teddylee777"><img src="https://avatars.githubusercontent.com/u/10074379?s=400&u=ee37ac1a4bb730df9c80d1ac92311cbbf61c680e&v=4" width="100px;" alt=""/><br /><sub><b>Teddy Lee</b></sub></a><br /><a href="https://teddylee777.github.io/" title="Code">🏠</a></td>
+    <td align="center"><a href="https://github.com/fbwndrud"><img src="https://avatars.githubusercontent.com/u/50973794?v=4" width="100px;" alt=""/><br /><sub><b>fbwndrud</b></sub></a><br /><a href="https://github.com/fbwndrud" title="Code">🏠</a></td>
+    <td align="center"><a href="https://github.com/jikime"><img src="https://avatars.githubusercontent.com/u/9925165?v=4" width="100px;" alt=""/><br /><sub><b>jikime</b></sub></a><br /><a href="https://github.com/jikime" title="Code">🏠</a></td>
+  </tr>
+</table>
 
 ## 📄 License
 

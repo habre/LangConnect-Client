@@ -192,16 +192,46 @@ LangConnect Client is a modern, Next.js-based GUI interface for managing vector 
 - `add_documents` - Add text documents
 - `delete_document` - Delete documents
 - `get_health_status` - Check API health
+- `multi_query` - Generate multiple search queries from a single question
+
+### Running MCP SSE Server
+
+#### Quick Start with Script
+
+```bash
+# Use the convenient launcher script
+./run_mcp_sse.sh
+```
+
+This script will:
+- Check if all requirements are met (uv, .env file)
+- Verify API server is running
+- Start the MCP SSE server with automatic authentication
+
+#### Manual Start
+
+```bash
+# Or run directly
+uv run python mcp/mcp_sse_server.py
+```
+
+The server now includes automatic authentication:
+- Tests existing token validity on startup
+- Prompts for login if token is expired or missing
+- Automatically updates `.env` with new token
+- Starts the SSE server on port 8765
 
 ### Testing MCP Integration
 
 ```bash
-# Start the SSE server
-uv run mcp-langconnect-sse
-
 # Test with MCP Inspector
 npx @modelcontextprotocol/inspector
 ```
+
+In the Inspector:
+1. Select "SSE" as transport type
+2. Enter `http://localhost:8765` as URL
+3. Connect and test the available tools
 
 ## 🔧 Environment Variables
 
@@ -245,17 +275,9 @@ The API provides comprehensive endpoints for document and collection management:
 
 ## 👥 Contributors
 
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/teddynote-lab">
-        <img src="https://github.com/teddynote-lab.png" width="100px;" alt=""/>
-        <br />
-        <sub><b>TeddyNote LAB</b></sub>
-      </a>
-    </td>
-  </tr>
-</table>
+<a href="https://github.com/teddynote-lab/LangConnect-Client/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=teddynote-lab/LangConnect-Client" />
+</a>
 
 ## 📄 License
 
